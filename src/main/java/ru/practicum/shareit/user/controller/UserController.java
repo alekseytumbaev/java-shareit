@@ -4,12 +4,15 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.user.User;
+import ru.practicum.shareit.user.UserDto;
+import ru.practicum.shareit.user.UserMapper;
 import ru.practicum.shareit.user.UserService;
 import ru.practicum.shareit.user.exception.UserNullFieldsException;
 
 import javax.validation.Valid;
 import javax.validation.constraints.Positive;
 import java.util.Collection;
+import java.util.stream.Collectors;
 
 @Slf4j
 @RestController
@@ -24,35 +27,35 @@ public class UserController {
     }
 
     @PostMapping
-    public User add(@RequestBody @Valid User user) {
-        if (user.getEmail() == null || user.getName() == null)
+    public UserDto add(@RequestBody @Valid UserDto userDto) {
+        if (userDto.getEmail() == null || userDto.getName() == null)
             throw new UserNullFieldsException("Cannot add user, because email or name is null");
-
-        User addedUser = userService.add(user);
+        User userToAdd = UserMapper.toUser(userDto);
+        User addedUser = userService.add(userToAdd);
         log.info("User with id={} was added", addedUser.getId());
-        return addedUser;
+        return UserMapper.toUserDto(addedUser);
     }
 
     @GetMapping
-    public Collection<User> getAll() {
+    public Collection<UserDto> getAll() {
         Collection<User> users = userService.getAll();
         log.info("All users retrieved");
-        return users;
+        return users.stream().map(UserMapper::toUserDto).collect(Collectors.toList());
     }
 
     @GetMapping("/{id}")
-    public User getById(@PathVariable @Positive long id) {
+    public UserDto getById(@PathVariable @Positive long id) {
         User user = userService.getById(id);
         log.info("User with id={} retrieved", id);
-        return user;
+        return UserMapper.toUserDto(user);
     }
 
     @PatchMapping("/{id}")
-    public User update(@RequestBody @Valid User user, @PathVariable @Positive long id) {
-        user.setId(id);
-        User updatedUser = userService.update(user);
+    public UserDto update(@RequestBody @Valid UserDto userDto, @PathVariable @Positive long id) {
+        userDto.setId(id);
+        User updatedUser = userService.update(UserMapper.toUser(userDto));
         log.info("User with id={} was updated", updatedUser.getId());
-        return updatedUser;
+        return UserMapper.toUserDto(updatedUser);
     }
 
     @DeleteMapping("/{id}")

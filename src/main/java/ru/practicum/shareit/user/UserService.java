@@ -25,6 +25,7 @@ public class UserService {
         if (userOpt.isEmpty())
             throw new UserNotFoundException(String.format("User with id=%d not found", user.getId()));
 
+        //replace null fields with values from existing user
         User presentedUser = userOpt.get();
         if (user.getName() == null)
             user.setName(presentedUser.getName());
