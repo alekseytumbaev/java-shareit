@@ -3,7 +3,7 @@ package ru.practicum.shareit.error;
 import lombok.Builder;
 import lombok.Data;
 import ru.practicum.shareit.error.validation_violation.FieldValidationViolation;
-import ru.practicum.shareit.error.validation_violation.PathVariableValidationViolation;
+import ru.practicum.shareit.error.validation_violation.HttpAttributeValidationViolation;
 
 import java.util.List;
 
@@ -12,5 +12,5 @@ import java.util.List;
 public class ErrorResponse {
     private String message;
     private List<FieldValidationViolation> fieldValidationViolations;
-    private List<PathVariableValidationViolation> pathVariableValidationViolations;
+    private List<HttpAttributeValidationViolation> httpAttributeValidationViolations;
 }

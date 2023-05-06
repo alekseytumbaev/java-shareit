@@ -5,7 +5,7 @@ import lombok.Data;
 
 @Data
 @AllArgsConstructor
-public class PathVariableValidationViolation {
-    private final String pathVariable;
+public class HttpAttributeValidationViolation {
+    private final String name;
     private final String message;
 }

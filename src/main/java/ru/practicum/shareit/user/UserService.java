@@ -10,6 +10,7 @@ import java.util.Optional;
 
 @Service
 public class UserService {
+
     private final UserStorage userStorage;
 
     public UserService(UserStorage userStorage) {
@@ -45,6 +46,10 @@ public class UserService {
             throw new UserNotFoundException(String.format("User with id=%d not found", id));
 
         return userOpt.get();
+    }
+
+    public boolean existsById(long id) {
+        return userStorage.existsById(id);
     }
 
     public void delete(long id) {

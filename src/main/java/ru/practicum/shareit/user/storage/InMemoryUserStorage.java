@@ -3,6 +3,7 @@ package ru.practicum.shareit.user.storage;
 import org.springframework.stereotype.Component;
 import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.exception.EmailAlreadyExistsException;
+import ru.practicum.shareit.user.exception.UserNotFoundException;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -25,7 +26,9 @@ public class InMemoryUserStorage implements UserStorage {
     }
 
     @Override
-    public User update(User user) throws EmailAlreadyExistsException {
+    public User update(User user) throws UserNotFoundException, EmailAlreadyExistsException {
+        if (!users.containsKey(user.getId()))
+            throw new UserNotFoundException(String.format("User with id=%d not found", user.getId()));
         if (emailIsNotUnique(user))
             throw new EmailAlreadyExistsException(
                     String.format("Cannot update user, because email=%s already exists", user.getEmail()));
@@ -46,6 +49,11 @@ public class InMemoryUserStorage implements UserStorage {
     @Override
     public void delete(long id) {
         users.remove(id);
+    }
+
+    @Override
+    public boolean existsById(long id) {
+        return users.containsKey(id);
     }
 
     private boolean emailIsNotUnique(User user) {

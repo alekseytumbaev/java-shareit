@@ -10,7 +10,6 @@ import ru.practicum.shareit.user.UserService;
 import ru.practicum.shareit.user.exception.UserNullFieldsException;
 
 import javax.validation.Valid;
-import javax.validation.constraints.Positive;
 import java.util.Collection;
 import java.util.stream.Collectors;
 
@@ -44,14 +43,14 @@ public class UserController {
     }
 
     @GetMapping("/{id}")
-    public UserDto getById(@PathVariable @Positive long id) {
+    public UserDto getById(@PathVariable long id) {
         User user = userService.getById(id);
         log.info("User with id={} retrieved", id);
         return UserMapper.toUserDto(user);
     }
 
     @PatchMapping("/{id}")
-    public UserDto update(@RequestBody @Valid UserDto userDto, @PathVariable @Positive long id) {
+    public UserDto update(@RequestBody @Valid UserDto userDto, @PathVariable long id) {
         userDto.setId(id);
         User updatedUser = userService.update(UserMapper.toUser(userDto));
         log.info("User with id={} was updated", updatedUser.getId());
@@ -59,7 +58,7 @@ public class UserController {
     }
 
     @DeleteMapping("/{id}")
-    public void delete(@PathVariable @Positive long id) {
+    public void delete(@PathVariable long id) {
         userService.delete(id);
         log.info("User with id={} was deleted", id);
     }
