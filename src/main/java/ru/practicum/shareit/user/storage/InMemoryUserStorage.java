@@ -5,33 +5,38 @@ import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.exception.EmailAlreadyExistsException;
 import ru.practicum.shareit.user.exception.UserNotFoundException;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 @Component
 public class InMemoryUserStorage implements UserStorage {
     private long nextId;
-    protected final Map<Long, User> users = new HashMap<>();
+    private final Map<Long, User> users = new HashMap<>();
+    private final Set<String> emails = new HashSet<>();
 
     @Override
-    public User add(User user) {
-        if (emailIsNotUnique(user))
+    public User add(User user) throws EmailAlreadyExistsException {
+        if (emailIsNotUnique(user)) {
             throw new EmailAlreadyExistsException(
                     String.format("Cannot add user, because email=%s already exists", user.getEmail()));
+        }
         user.setId(getNextId());
         users.put(user.getId(), user);
+        emails.add(user.getEmail());
         return user;
     }
 
     @Override
     public User update(User user) throws UserNotFoundException, EmailAlreadyExistsException {
-        if (!users.containsKey(user.getId()))
+        User presentedUser = users.get(user.getId());
+        if (presentedUser == null) {
             throw new UserNotFoundException(String.format("User with id=%d not found", user.getId()));
-        if (emailIsNotUnique(user))
+        }
+        if (emailIsNotUnique(user)) {
             throw new EmailAlreadyExistsException(
                     String.format("Cannot update user, because email=%s already exists", user.getEmail()));
+        }
+        emails.remove(presentedUser.getEmail());
+        emails.add(user.getEmail());
         users.put(user.getId(), user);
         return user;
     }
@@ -48,6 +53,11 @@ public class InMemoryUserStorage implements UserStorage {
 
     @Override
     public void delete(long id) {
+        User user = users.get(id);
+        if (user == null) {
+            return;
+        }
+        emails.remove(user.getEmail());
         users.remove(id);
     }
 
@@ -57,10 +67,12 @@ public class InMemoryUserStorage implements UserStorage {
     }
 
     private boolean emailIsNotUnique(User user) {
-        for (User presentedUser : users.values())
-            if (user.getId() != presentedUser.getId() && user.getEmail().equals(presentedUser.getEmail()))
-                return true;
-        return false;
+        User presentedUser = users.get(user.getId());
+        if (presentedUser == null || !presentedUser.getEmail().equals(user.getEmail())) {
+            return emails.contains(user.getEmail());
+        } else {
+            return false;
+        }
     }
 
     private long getNextId() {

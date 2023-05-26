@@ -27,10 +27,10 @@ public class UserController {
 
     @PostMapping
     public UserDto add(@RequestBody @Valid UserDto userDto) {
-        if (userDto.getEmail() == null || userDto.getName() == null)
+        if (userDto.getEmail() == null || userDto.getName() == null) {
             throw new UserNullFieldsException("Cannot add user, because email or name is null");
-        User userToAdd = UserMapper.toUser(userDto);
-        User addedUser = userService.add(userToAdd);
+        }
+        User addedUser = userService.add(UserMapper.toUser(userDto));
         log.info("User with id={} was added", addedUser.getId());
         return UserMapper.toUserDto(addedUser);
     }

@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
 @RequestMapping("/items")
 @Validated
 public class ItemController {
-
+    private static final String userIdHeader = "X-Sharer-User-Id";
     private final ItemService itemService;
 
     public ItemController(ItemService itemService) {
@@ -29,9 +29,10 @@ public class ItemController {
 
     @PostMapping
     public ItemDto add(@RequestBody @Valid ItemDto itemDto,
-                       @RequestHeader("X-Sharer-User-Id") long ownerId) {
-        if (itemDto.getName() == null || itemDto.getDescription() == null || itemDto.getAvailable() == null)
+                       @RequestHeader(userIdHeader) long ownerId) {
+        if (itemDto.getName() == null || itemDto.getDescription() == null || itemDto.getAvailable() == null) {
             throw new ItemNullFieldsException("Cannot add item, because name, description or available is null");
+        }
 
         itemDto.setOwnerId(ownerId);
         Item itemToAdd = ItemMapper.toItem(itemDto);
@@ -55,7 +56,7 @@ public class ItemController {
     }
 
     @GetMapping
-    public Collection<ItemDto> getByOwnerId(@RequestHeader("X-Sharer-User-Id") long userId) {
+    public Collection<ItemDto> getByOwnerId(@RequestHeader(userIdHeader) long userId) {
         Collection<Item> items = itemService.getByOwnerId(userId);
         log.info("Items of owner with id={} retrieved", userId);
         return items.stream().map(ItemMapper::toItemDto).collect(Collectors.toList());
@@ -64,7 +65,7 @@ public class ItemController {
     @PatchMapping("/{itemId}")
     public ItemDto update(@RequestBody @Valid ItemDto itemDto,
                           @PathVariable long itemId,
-                          @RequestHeader("X-Sharer-User-Id") long userId) {
+                          @RequestHeader(userIdHeader) long userId) {
         Item item = ItemMapper.toItem(itemDto);
         item.setId(itemId);
         item.setOwnerId(userId);

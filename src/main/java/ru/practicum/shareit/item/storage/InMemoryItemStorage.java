@@ -10,7 +10,7 @@ import java.util.stream.Collectors;
 @Component
 public class InMemoryItemStorage implements ItemStorage {
     private long nextId;
-    protected final Map<Long, Item> items = new HashMap<>();
+    private final Map<Long, Item> items = new HashMap<>();
 
     @Override
     public Item add(Item item) {
@@ -31,7 +31,6 @@ public class InMemoryItemStorage implements ItemStorage {
 
     @Override
     public Collection<Item> searchByNameOrDescription(String text) {
-        if (text.isBlank()) return new ArrayList<>(0);
         return items.values().stream()
                 .filter(item -> item.getAvailable() &&
                         (containsIgnoreCase(item.getName(), text) || containsIgnoreCase(item.getDescription(), text)))
@@ -44,8 +43,9 @@ public class InMemoryItemStorage implements ItemStorage {
 
     @Override
     public Item update(Item item) throws ItemNotFoundException {
-        if (!items.containsKey(item.getId()))
+        if (!items.containsKey(item.getId())) {
             throw new ItemNotFoundException(String.format("Item with id=%d not found", item.getId()));
+        }
         items.put(item.getId(), item);
         return item;
     }

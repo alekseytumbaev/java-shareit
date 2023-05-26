@@ -7,6 +7,7 @@ import ru.practicum.shareit.item.storage.ItemStorage;
 import ru.practicum.shareit.user.UserService;
 import ru.practicum.shareit.user.exception.UserNotFoundException;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Optional;
 
@@ -22,17 +23,18 @@ public class ItemService {
     }
 
     public Item add(Item item) throws UserNotFoundException {
-        if (!userService.existsById(item.getOwnerId()))
+        if (!userService.existsById(item.getOwnerId())) {
             throw new UserNotFoundException(
                     String.format("Cannot add item, because owner with id=%d not found", item.getOwnerId()));
+        }
         return itemStorage.add(item);
     }
 
     public Item getById(long itemId) throws ItemNotFoundException {
         Optional<Item> itemOpt = itemStorage.getById(itemId);
-        if (itemOpt.isEmpty())
+        if (itemOpt.isEmpty()) {
             throw new ItemNotFoundException(String.format("Item with id=%d not found", itemId));
-
+        }
         return itemOpt.get();
     }
 
@@ -41,26 +43,34 @@ public class ItemService {
     }
 
     public Collection<Item> searchByNameOrDescription(String text) {
+        if (text.isBlank()) {
+            return new ArrayList<>(0);
+        }
         return itemStorage.searchByNameOrDescription(text);
     }
 
     public Item update(Item item) throws ItemNotFoundException {
         Optional<Item> itemOpt = itemStorage.getById(item.getId());
-        if (itemOpt.isEmpty())
+        if (itemOpt.isEmpty()) {
             throw new ItemNotFoundException(String.format("Item with id=%d not found", item.getId()));
+        }
 
         Item presentedItem = itemOpt.get();
-        if (item.getOwnerId() != presentedItem.getOwnerId())
+        if (item.getOwnerId() != presentedItem.getOwnerId()) {
             throw new WrongOwnerIdException(String.format("User with id=%d cannot update item owned by user with id=%d",
-                            item.getOwnerId(), presentedItem.getOwnerId()));
+                    item.getOwnerId(), presentedItem.getOwnerId()));
+        }
 
         //replace null fields with values from existing item
-        if (item.getName() == null)
+        if (item.getName() == null) {
             item.setName(presentedItem.getName());
-        if (item.getDescription() == null)
+        }
+        if (item.getDescription() == null) {
             item.setDescription(presentedItem.getDescription());
-        if (item.getAvailable() == null)
+        }
+        if (item.getAvailable() == null) {
             item.setAvailable(presentedItem.getAvailable());
+        }
         item.setRequest(presentedItem.getRequest());
 
         return itemStorage.update(item);

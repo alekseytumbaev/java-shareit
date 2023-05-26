@@ -23,15 +23,18 @@ public class UserService {
 
     public User update(User user) throws UserNotFoundException {
         Optional<User> userOpt = userStorage.getById(user.getId());
-        if (userOpt.isEmpty())
+        if (userOpt.isEmpty()) {
             throw new UserNotFoundException(String.format("User with id=%d not found", user.getId()));
+        }
 
         //replace null fields with values from existing user
         User presentedUser = userOpt.get();
-        if (user.getName() == null)
+        if (user.getName() == null) {
             user.setName(presentedUser.getName());
-        if (user.getEmail() == null)
+        }
+        if (user.getEmail() == null) {
             user.setEmail(presentedUser.getEmail());
+        }
 
         return userStorage.update(user);
     }
@@ -42,8 +45,9 @@ public class UserService {
 
     public User getById(long id) throws UserNotFoundException {
         Optional<User> userOpt = userStorage.getById(id);
-        if (userOpt.isEmpty())
+        if (userOpt.isEmpty()) {
             throw new UserNotFoundException(String.format("User with id=%d not found", id));
+        }
 
         return userOpt.get();
     }
