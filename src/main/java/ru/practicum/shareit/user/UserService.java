@@ -3,7 +3,7 @@ package ru.practicum.shareit.user;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.user.exception.EmailAlreadyExistsException;
 import ru.practicum.shareit.user.exception.UserNotFoundException;
-import ru.practicum.shareit.user.storage.UserStorage;
+import ru.practicum.shareit.user.storage.UserRepository;
 
 import java.util.Collection;
 import java.util.Optional;
@@ -11,18 +11,21 @@ import java.util.Optional;
 @Service
 public class UserService {
 
-    private final UserStorage userStorage;
+    private final UserRepository userRepo;
 
-    public UserService(UserStorage userStorage) {
-        this.userStorage = userStorage;
+    public UserService(UserRepository userRepo) {
+        this.userRepo = userRepo;
     }
 
     public User add(User user) throws EmailAlreadyExistsException {
-        return userStorage.add(user);
+        if (userRepo.existsByEmail(user.getEmail())) {
+            throw new EmailAlreadyExistsException(user.getEmail());
+        }
+        return userRepo.save(user);
     }
 
-    public User update(User user) throws UserNotFoundException {
-        Optional<User> userOpt = userStorage.getById(user.getId());
+    public User update(User user) throws UserNotFoundException, EmailAlreadyExistsException {
+        Optional<User> userOpt = userRepo.findById(user.getId());
         if (userOpt.isEmpty()) {
             throw new UserNotFoundException(String.format("User with id=%d not found", user.getId()));
         }
@@ -32,31 +35,34 @@ public class UserService {
         if (user.getName() == null) {
             user.setName(presentedUser.getName());
         }
-        if (user.getEmail() == null) {
+        //check email uniqueness
+        if (user.getEmail() == null || user.getEmail().equals(presentedUser.getEmail())) {
             user.setEmail(presentedUser.getEmail());
+        } else {
+            if (userRepo.existsByEmail(user.getEmail())) {
+                throw new EmailAlreadyExistsException(String.format("User with email=%s already exists", user.getEmail()));
+            }
         }
-
-        return userStorage.update(user);
+        return userRepo.save(user);
     }
 
     public Collection<User> getAll() {
-        return userStorage.getAll();
+        return userRepo.findAll();
     }
 
     public User getById(long id) throws UserNotFoundException {
-        Optional<User> userOpt = userStorage.getById(id);
+        Optional<User> userOpt = userRepo.findById(id);
         if (userOpt.isEmpty()) {
             throw new UserNotFoundException(String.format("User with id=%d not found", id));
         }
-
         return userOpt.get();
     }
 
     public boolean existsById(long id) {
-        return userStorage.existsById(id);
+        return userRepo.existsById(id);
     }
 
     public void delete(long id) {
-        userStorage.delete(id);
+        userRepo.deleteById(id);
     }
 }
