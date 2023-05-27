@@ -3,6 +3,7 @@ package ru.practicum.shareit.item;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import ru.practicum.shareit.user.User;
 
 import javax.persistence.*;
 
@@ -13,7 +14,8 @@ import javax.persistence.*;
 @NoArgsConstructor
 public class Item {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "item_generator")
+    @SequenceGenerator(name = "item_generator", sequenceName = "item_seq")
     @Column(name = "item_id")
     private long id;
     
@@ -22,6 +24,9 @@ public class Item {
 
     private String description;
     private Boolean available;
-    private long ownerId;
+
+    @ManyToOne(optional = false)
+    private User owner;
+
     private String request;
 }

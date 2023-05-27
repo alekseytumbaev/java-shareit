@@ -1,9 +1,7 @@
 package ru.practicum.shareit.user;
 
 import org.springframework.stereotype.Service;
-import ru.practicum.shareit.user.exception.EmailAlreadyExistsException;
 import ru.practicum.shareit.user.exception.UserNotFoundException;
-import ru.practicum.shareit.user.storage.UserRepository;
 
 import java.util.Collection;
 import java.util.Optional;
@@ -17,31 +15,20 @@ public class UserService {
         this.userRepo = userRepo;
     }
 
-    public User add(User user) throws EmailAlreadyExistsException {
-        if (userRepo.existsByEmail(user.getEmail())) {
-            throw new EmailAlreadyExistsException(user.getEmail());
-        }
+    public User add(User user) {
         return userRepo.save(user);
     }
 
-    public User update(User user) throws UserNotFoundException, EmailAlreadyExistsException {
-        Optional<User> userOpt = userRepo.findById(user.getId());
-        if (userOpt.isEmpty()) {
-            throw new UserNotFoundException(String.format("User with id=%d not found", user.getId()));
-        }
+    public User update(User user) throws UserNotFoundException {
+        User presentedUser = getById(user.getId());
 
         //replace null fields with values from existing user
-        User presentedUser = userOpt.get();
         if (user.getName() == null) {
             user.setName(presentedUser.getName());
         }
         //check email uniqueness
-        if (user.getEmail() == null || user.getEmail().equals(presentedUser.getEmail())) {
+        if (user.getEmail() == null) {
             user.setEmail(presentedUser.getEmail());
-        } else {
-            if (userRepo.existsByEmail(user.getEmail())) {
-                throw new EmailAlreadyExistsException(String.format("User with email=%s already exists", user.getEmail()));
-            }
         }
         return userRepo.save(user);
     }

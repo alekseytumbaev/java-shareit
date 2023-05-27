@@ -3,7 +3,6 @@ package ru.practicum.shareit.item;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.item.exception.ItemNotFoundException;
 import ru.practicum.shareit.item.exception.WrongOwnerIdException;
-import ru.practicum.shareit.item.storage.ItemStorage;
 import ru.practicum.shareit.user.UserService;
 import ru.practicum.shareit.user.exception.UserNotFoundException;
 
@@ -14,24 +13,24 @@ import java.util.Optional;
 @Service
 public class ItemService {
 
-    private final ItemStorage itemStorage;
+    private final ItemRepository itemRepo;
     private final UserService userService;
 
-    public ItemService(ItemStorage itemStorage, UserService userService) {
-        this.itemStorage = itemStorage;
+    public ItemService(ItemRepository itemRepo, UserService userService) {
+        this.itemRepo = itemRepo;
         this.userService = userService;
     }
 
     public Item add(Item item) throws UserNotFoundException {
-        if (!userService.existsById(item.getOwnerId())) {
+        if (!userService.existsById(item.getOwner().getId())) {
             throw new UserNotFoundException(
-                    String.format("Cannot add item, because owner with id=%d not found", item.getOwnerId()));
+                    String.format("Cannot add item, because owner with id=%d not found", item.getOwner().getId()));
         }
-        return itemStorage.add(item);
+        return itemRepo.save(item);
     }
 
     public Item getById(long itemId) throws ItemNotFoundException {
-        Optional<Item> itemOpt = itemStorage.getById(itemId);
+        Optional<Item> itemOpt = itemRepo.findById(itemId);
         if (itemOpt.isEmpty()) {
             throw new ItemNotFoundException(String.format("Item with id=%d not found", itemId));
         }
@@ -39,26 +38,22 @@ public class ItemService {
     }
 
     public Collection<Item> getByOwnerId(long ownerId) {
-        return itemStorage.getByOwnerId(ownerId);
+        return itemRepo.findAllByOwnerId(ownerId);
     }
 
     public Collection<Item> searchByNameOrDescription(String text) {
         if (text.isBlank()) {
             return new ArrayList<>(0);
         }
-        return itemStorage.searchByNameOrDescription(text);
+        return itemRepo.searchByNameOrDescription(text);
     }
 
     public Item update(Item item) throws ItemNotFoundException {
-        Optional<Item> itemOpt = itemStorage.getById(item.getId());
-        if (itemOpt.isEmpty()) {
-            throw new ItemNotFoundException(String.format("Item with id=%d not found", item.getId()));
-        }
+        Item presentedItem = getById(item.getId());
 
-        Item presentedItem = itemOpt.get();
-        if (item.getOwnerId() != presentedItem.getOwnerId()) {
+        if (item.getOwner().getId() != presentedItem.getOwner().getId()) {
             throw new WrongOwnerIdException(String.format("User with id=%d cannot update item owned by user with id=%d",
-                    item.getOwnerId(), presentedItem.getOwnerId()));
+                    item.getOwner().getId(), presentedItem.getOwner().getId()));
         }
 
         //replace null fields with values from existing item
@@ -73,6 +68,6 @@ public class ItemService {
         }
         item.setRequest(presentedItem.getRequest());
 
-        return itemStorage.update(item);
+        return itemRepo.save(item);
     }
 }

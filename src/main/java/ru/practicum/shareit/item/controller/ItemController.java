@@ -22,9 +22,11 @@ import java.util.stream.Collectors;
 public class ItemController {
     private static final String userIdHeader = "X-Sharer-User-Id";
     private final ItemService itemService;
+    private final ItemMapper ItemMapper;
 
-    public ItemController(ItemService itemService) {
+    public ItemController(ItemService itemService, ru.practicum.shareit.item.ItemMapper itemMapper) {
         this.itemService = itemService;
+        ItemMapper = itemMapper;
     }
 
     @PostMapping
@@ -66,9 +68,9 @@ public class ItemController {
     public ItemDto update(@RequestBody @Valid ItemDto itemDto,
                           @PathVariable long itemId,
                           @RequestHeader(userIdHeader) long userId) {
+        itemDto.setOwnerId(userId);
+        itemDto.setId(itemId);
         Item item = ItemMapper.toItem(itemDto);
-        item.setId(itemId);
-        item.setOwnerId(userId);
         Item updatedItem = itemService.update(item);
         log.info("Item with id={} was updated", updatedItem.getId());
         return ItemMapper.toItemDto(updatedItem);

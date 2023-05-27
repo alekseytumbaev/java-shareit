@@ -1,24 +1,35 @@
 package ru.practicum.shareit.item;
 
-public class ItemMapper {
+import org.springframework.stereotype.Component;
+import ru.practicum.shareit.user.User;
+import ru.practicum.shareit.user.UserService;
 
-    public static Item toItem(ItemDto itemDto) {
+@Component
+public class ItemMapper {
+    private final UserService userService;
+
+    public ItemMapper(UserService userService) {
+        this.userService = userService;
+    }
+
+    public Item toItem(ItemDto itemDto) {
+        User owner = userService.getById(itemDto.getOwnerId());
         return new Item(
                 itemDto.getId(),
                 itemDto.getName(),
                 itemDto.getDescription(),
                 itemDto.getAvailable(),
-                itemDto.getOwnerId(),
+                owner,
                 itemDto.getRequest());
     }
 
-    public static ItemDto toItemDto(Item item) {
+    public ItemDto toItemDto(Item item) {
         return new ItemDto(
                 item.getId(),
                 item.getName(),
                 item.getDescription(),
                 item.getAvailable(),
-                item.getOwnerId(),
+                item.getOwner().getId(),
                 item.getRequest());
     }
 }
