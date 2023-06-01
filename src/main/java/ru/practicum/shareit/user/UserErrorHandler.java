@@ -1,4 +1,4 @@
-package ru.practicum.shareit.user.controller;
+package ru.practicum.shareit.user;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.Ordered;
@@ -23,7 +23,7 @@ public class UserErrorHandler {
     public ErrorResponse onUserNullFieldsException(final UserNullFieldsException e) {
         String message = "User fields must not be null";
         log.warn(message, e);
-        return ErrorResponse.builder().message(message).build();
+        return ErrorResponse.builder().error(message).build();
     }
 
     @ExceptionHandler(DataIntegrityViolationException.class)
@@ -31,6 +31,6 @@ public class UserErrorHandler {
     public ErrorResponse onDataIntegrityViolationException(final DataIntegrityViolationException e) {
         String message = "Email already exists";
         log.warn(message, e);
-        return ErrorResponse.builder().message(message).build();
+        return ErrorResponse.builder().error(message).build();
     }
 }

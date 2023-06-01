@@ -1,7 +1,8 @@
 package ru.practicum.shareit.user;
 
 import org.springframework.stereotype.Service;
-import ru.practicum.shareit.user.exception.UserNotFoundException;
+import ru.practicum.shareit.error.global_exception.UserNotFoundException;
+import ru.practicum.shareit.user.model.User;
 
 import java.util.Collection;
 import java.util.Optional;

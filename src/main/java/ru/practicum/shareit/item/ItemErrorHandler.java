@@ -1,4 +1,4 @@
-package ru.practicum.shareit.item.controller;
+package ru.practicum.shareit.item;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.Ordered;
@@ -9,9 +9,9 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import ru.practicum.shareit.error.ErrorResponse;
 import ru.practicum.shareit.item.exception.ItemNotFoundException;
 import ru.practicum.shareit.item.exception.ItemNullFieldsException;
-import ru.practicum.shareit.item.exception.WrongOwnerIdException;
 
-import static org.springframework.http.HttpStatus.*;
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
+import static org.springframework.http.HttpStatus.NOT_FOUND;
 
 @Slf4j
 @RestControllerAdvice
@@ -23,7 +23,7 @@ public class ItemErrorHandler {
     public ErrorResponse onItemNotFoundException(final ItemNotFoundException e) {
         String message = "Item not found";
         log.warn(message, e);
-        return ErrorResponse.builder().message(message).build();
+        return ErrorResponse.builder().error(message).build();
     }
 
     @ExceptionHandler(ItemNullFieldsException.class)
@@ -31,14 +31,6 @@ public class ItemErrorHandler {
     public ErrorResponse onItemNullFieldsException(final ItemNullFieldsException e) {
         String message = "Name, available and description must not be null";
         log.warn(message, e);
-        return ErrorResponse.builder().message(message).build();
-    }
-
-    @ExceptionHandler(WrongOwnerIdException.class)
-    @ResponseStatus(FORBIDDEN)
-    public ErrorResponse onWrongOwnerIdException(final WrongOwnerIdException e) {
-        String message = "This item does not belong to this user";
-        log.warn(message, e);
-        return ErrorResponse.builder().message(message).build();
+        return ErrorResponse.builder().error(message).build();
     }
 }

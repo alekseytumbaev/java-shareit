@@ -1,10 +1,11 @@
 package ru.practicum.shareit.item;
 
 import org.springframework.stereotype.Service;
+import ru.practicum.shareit.error.global_exception.UnauthorizedException;
 import ru.practicum.shareit.item.exception.ItemNotFoundException;
-import ru.practicum.shareit.item.exception.WrongOwnerIdException;
+import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.UserService;
-import ru.practicum.shareit.user.exception.UserNotFoundException;
+import ru.practicum.shareit.error.global_exception.UserNotFoundException;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -12,7 +13,6 @@ import java.util.Optional;
 
 @Service
 public class ItemService {
-
     private final ItemRepository itemRepo;
     private final UserService userService;
 
@@ -52,7 +52,7 @@ public class ItemService {
         Item presentedItem = getById(item.getId());
 
         if (item.getOwner().getId() != presentedItem.getOwner().getId()) {
-            throw new WrongOwnerIdException(String.format("User with id=%d cannot update item owned by user with id=%d",
+            throw new UnauthorizedException(String.format("User with id=%d cannot update item owned by user with id=%d",
                     item.getOwner().getId(), presentedItem.getOwner().getId()));
         }
 

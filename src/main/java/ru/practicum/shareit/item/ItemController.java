@@ -1,13 +1,13 @@
-package ru.practicum.shareit.item.controller;
+package ru.practicum.shareit.item;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import ru.practicum.shareit.item.Item;
-import ru.practicum.shareit.item.ItemDto;
-import ru.practicum.shareit.item.ItemMapper;
-import ru.practicum.shareit.item.ItemService;
+import ru.practicum.shareit.util.constant.Header;
 import ru.practicum.shareit.item.exception.ItemNullFieldsException;
+import ru.practicum.shareit.item.model.Item;
+import ru.practicum.shareit.item.model.ItemDto;
+import ru.practicum.shareit.item.model.ItemMapper;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
@@ -20,18 +20,17 @@ import java.util.stream.Collectors;
 @RequestMapping("/items")
 @Validated
 public class ItemController {
-    private static final String userIdHeader = "X-Sharer-User-Id";
     private final ItemService itemService;
     private final ItemMapper ItemMapper;
 
-    public ItemController(ItemService itemService, ru.practicum.shareit.item.ItemMapper itemMapper) {
+    public ItemController(ItemService itemService, ru.practicum.shareit.item.model.ItemMapper itemMapper) {
         this.itemService = itemService;
         ItemMapper = itemMapper;
     }
 
     @PostMapping
     public ItemDto add(@RequestBody @Valid ItemDto itemDto,
-                       @RequestHeader(userIdHeader) long ownerId) {
+                       @RequestHeader(Header.USER_ID_HEADER) long ownerId) {
         if (itemDto.getName() == null || itemDto.getDescription() == null || itemDto.getAvailable() == null) {
             throw new ItemNullFieldsException("Cannot add item, because name, description or available is null");
         }
@@ -58,7 +57,7 @@ public class ItemController {
     }
 
     @GetMapping
-    public Collection<ItemDto> getByOwnerId(@RequestHeader(userIdHeader) long userId) {
+    public Collection<ItemDto> getByOwnerId(@RequestHeader(Header.USER_ID_HEADER) long userId) {
         Collection<Item> items = itemService.getByOwnerId(userId);
         log.info("Items of owner with id={} retrieved", userId);
         return items.stream().map(ItemMapper::toItemDto).collect(Collectors.toList());
@@ -67,7 +66,7 @@ public class ItemController {
     @PatchMapping("/{itemId}")
     public ItemDto update(@RequestBody @Valid ItemDto itemDto,
                           @PathVariable long itemId,
-                          @RequestHeader(userIdHeader) long userId) {
+                          @RequestHeader(Header.USER_ID_HEADER) long userId) {
         itemDto.setOwnerId(userId);
         itemDto.setId(itemId);
         Item item = ItemMapper.toItem(itemDto);

@@ -1,7 +1,7 @@
-package ru.practicum.shareit.item;
+package ru.practicum.shareit.item.model;
 
 import org.springframework.stereotype.Component;
-import ru.practicum.shareit.user.User;
+import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.UserService;
 
 @Component
