@@ -3,10 +3,11 @@ package ru.practicum.shareit.item;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import ru.practicum.shareit.item.model.dto.ItemWithBookingsDtoResponse;
 import ru.practicum.shareit.util.constant.Header;
 import ru.practicum.shareit.item.exception.ItemNullFieldsException;
 import ru.practicum.shareit.item.model.Item;
-import ru.practicum.shareit.item.model.ItemDto;
+import ru.practicum.shareit.item.model.dto.ItemDto;
 import ru.practicum.shareit.item.model.ItemMapper;
 
 import javax.validation.Valid;
@@ -43,10 +44,11 @@ public class ItemController {
     }
 
     @GetMapping("/{itemId}")
-    public ItemDto getById(@PathVariable long itemId) {
-        Item item = itemService.getById(itemId);
-        log.info("Item with id={} retrieved", item.getId());
-        return ItemMapper.toItemDto(item);
+    public ItemWithBookingsDtoResponse getById(@RequestHeader(Header.USER_ID_HEADER) long userId,
+                                               @PathVariable long itemId) {
+        ItemWithBookingsDtoResponse itemDto = itemService.getDtoById(itemId, userId);
+        log.info("Item with id={} retrieved", itemDto.getId());
+        return itemDto;
     }
 
     @GetMapping("/search")
@@ -57,10 +59,10 @@ public class ItemController {
     }
 
     @GetMapping
-    public Collection<ItemDto> getByOwnerId(@RequestHeader(Header.USER_ID_HEADER) long userId) {
-        Collection<Item> items = itemService.getByOwnerId(userId);
-        log.info("Items of owner with id={} retrieved", userId);
-        return items.stream().map(ItemMapper::toItemDto).collect(Collectors.toList());
+    public Collection<ItemWithBookingsDtoResponse> getByOwnerId(@RequestHeader(Header.USER_ID_HEADER) long ownerId) {
+        Collection<ItemWithBookingsDtoResponse> itemsDto = itemService.getAllByOwnerId(ownerId);
+        log.info("Items of owner with id={} retrieved", ownerId);
+        return itemsDto;
     }
 
     @PatchMapping("/{itemId}")

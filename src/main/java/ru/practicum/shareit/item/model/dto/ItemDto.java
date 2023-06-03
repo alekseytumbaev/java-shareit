@@ -1,4 +1,4 @@
-package ru.practicum.shareit.item.model;
+package ru.practicum.shareit.item.model.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -19,7 +19,7 @@ public class ItemDto {
     private long ownerId;
 
     /**
-    If item was created no the request of another user,
+    If item was created on the request of another user,
     then in this field will store a link to the corresponding request
      */
     private String request;
