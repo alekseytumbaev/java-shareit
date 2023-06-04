@@ -3,12 +3,14 @@ package ru.practicum.shareit.item;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import ru.practicum.shareit.item.model.dto.ItemWithBookingsDtoResponse;
-import ru.practicum.shareit.util.constant.Header;
 import ru.practicum.shareit.item.exception.ItemNullFieldsException;
 import ru.practicum.shareit.item.model.Item;
-import ru.practicum.shareit.item.model.dto.ItemDto;
 import ru.practicum.shareit.item.model.ItemMapper;
+import ru.practicum.shareit.item.model.dto.CommentRequestDto;
+import ru.practicum.shareit.item.model.dto.CommentResponseDto;
+import ru.practicum.shareit.item.model.dto.ItemDto;
+import ru.practicum.shareit.item.model.dto.ItemWithBookingsResponseDto;
+import ru.practicum.shareit.util.constant.Header;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
@@ -44,9 +46,9 @@ public class ItemController {
     }
 
     @GetMapping("/{itemId}")
-    public ItemWithBookingsDtoResponse getById(@RequestHeader(Header.USER_ID_HEADER) long userId,
+    public ItemWithBookingsResponseDto getById(@RequestHeader(Header.USER_ID_HEADER) long userId,
                                                @PathVariable long itemId) {
-        ItemWithBookingsDtoResponse itemDto = itemService.getDtoById(itemId, userId);
+        ItemWithBookingsResponseDto itemDto = itemService.getDtoById(itemId, userId);
         log.info("Item with id={} retrieved", itemDto.getId());
         return itemDto;
     }
@@ -59,8 +61,8 @@ public class ItemController {
     }
 
     @GetMapping
-    public Collection<ItemWithBookingsDtoResponse> getByOwnerId(@RequestHeader(Header.USER_ID_HEADER) long ownerId) {
-        Collection<ItemWithBookingsDtoResponse> itemsDto = itemService.getAllByOwnerId(ownerId);
+    public Collection<ItemWithBookingsResponseDto> getByOwnerId(@RequestHeader(Header.USER_ID_HEADER) long ownerId) {
+        Collection<ItemWithBookingsResponseDto> itemsDto = itemService.getAllByOwnerId(ownerId);
         log.info("Items of owner with id={} retrieved", ownerId);
         return itemsDto;
     }
@@ -75,5 +77,14 @@ public class ItemController {
         Item updatedItem = itemService.update(item);
         log.info("Item with id={} was updated", updatedItem.getId());
         return ItemMapper.toItemDto(updatedItem);
+    }
+
+    @PostMapping("/{itemId}/comment")
+    public CommentResponseDto addComment(@RequestBody @Valid CommentRequestDto commentRequestDto,
+                                         @PathVariable long itemId,
+                                         @RequestHeader(Header.USER_ID_HEADER) long authorId) {
+        CommentResponseDto comment = itemService.addComment(commentRequestDto, itemId, authorId);
+        log.info("Comment with id={} for item with id={} was created", comment.getId(), itemId);
+        return comment;
     }
 }

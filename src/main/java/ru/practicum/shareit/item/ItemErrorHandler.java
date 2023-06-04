@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import ru.practicum.shareit.error.ErrorResponse;
+import ru.practicum.shareit.item.exception.CommentingRestrictedException;
 import ru.practicum.shareit.item.exception.ItemNotFoundException;
 import ru.practicum.shareit.item.exception.ItemNullFieldsException;
 
@@ -31,6 +32,14 @@ public class ItemErrorHandler {
     public ErrorResponse onItemNullFieldsException(final ItemNullFieldsException e) {
         String message = "Name, available and description must not be null";
         log.warn(message, e);
+        return ErrorResponse.builder().error(message).build();
+    }
+
+    @ExceptionHandler(CommentingRestrictedException.class)
+    @ResponseStatus(BAD_REQUEST)
+    public ErrorResponse commentingRestrictedException(final CommentingRestrictedException e) {
+        String message = "Commenting restricted: " + e.getMessage();
+        log.warn("Commenting restricted", e);
         return ErrorResponse.builder().error(message).build();
     }
 }

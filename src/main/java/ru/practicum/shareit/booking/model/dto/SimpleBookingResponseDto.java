@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 
 @Data
 @AllArgsConstructor
-public class SimpleBookingDtoResponse {
+public class SimpleBookingResponseDto {
     private long id;
     private LocalDateTime start;
     private LocalDateTime end;

@@ -2,18 +2,18 @@ package ru.practicum.shareit.item.model.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import ru.practicum.shareit.booking.model.dto.SimpleBookingDtoResponse;
+import ru.practicum.shareit.booking.model.dto.SimpleBookingResponseDto;
 
 @Data
 @AllArgsConstructor
-public class ItemWithBookingsDtoResponse {
+public class ItemWithBookingsResponseDto {
     private long id;
     private String name;
     private String description;
     private Boolean available;
     private long ownerId;
-    private SimpleBookingDtoResponse lastBooking;
-    private SimpleBookingDtoResponse nextBooking;
+    private SimpleBookingResponseDto lastBooking;
+    private SimpleBookingResponseDto nextBooking;
 
     /**
      If item was created on the request of another user,

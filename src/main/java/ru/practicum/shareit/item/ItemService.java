@@ -4,14 +4,21 @@ import org.springframework.stereotype.Service;
 import ru.practicum.shareit.booking.BookingRepository;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.BookingMapper;
-import ru.practicum.shareit.booking.model.dto.SimpleBookingDtoResponse;
+import ru.practicum.shareit.booking.model.BookingStatus;
+import ru.practicum.shareit.booking.model.dto.SimpleBookingResponseDto;
 import ru.practicum.shareit.error.global_exception.UnauthorizedException;
 import ru.practicum.shareit.error.global_exception.UserNotFoundException;
+import ru.practicum.shareit.item.exception.CommentingRestrictedException;
 import ru.practicum.shareit.item.exception.ItemNotFoundException;
+import ru.practicum.shareit.item.model.Comment;
+import ru.practicum.shareit.item.model.CommentMapper;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.model.ItemMapper;
-import ru.practicum.shareit.item.model.dto.ItemWithBookingsDtoResponse;
+import ru.practicum.shareit.item.model.dto.CommentRequestDto;
+import ru.practicum.shareit.item.model.dto.CommentResponseDto;
+import ru.practicum.shareit.item.model.dto.ItemWithBookingsResponseDto;
 import ru.practicum.shareit.user.UserService;
+import ru.practicum.shareit.user.model.User;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -22,12 +29,45 @@ public class ItemService {
     private final UserService userService;
     private final BookingRepository bookingRepo;
     private final ItemMapper itemMapper;
+    private final CommentRepository commentRepo;
 
-    public ItemService(ItemRepository itemRepo, UserService userService, BookingRepository bookingRepo, ItemMapper itemMapper) {
+    public ItemService(ItemRepository itemRepo, UserService userService, BookingRepository bookingRepo,
+                       ItemMapper itemMapper, CommentRepository commentRepo) {
         this.itemRepo = itemRepo;
         this.userService = userService;
         this.bookingRepo = bookingRepo;
         this.itemMapper = itemMapper;
+        this.commentRepo = commentRepo;
+    }
+
+    /**
+     * User can write a comment for the item only if he booked it and the booking had ended before the comment was written
+     */
+    public CommentResponseDto addComment(CommentRequestDto commentRequestDto, long itemId, long authorId)
+            throws UserNotFoundException, ItemNotFoundException {
+        User author = userService.getById(authorId);
+        Item item = getById(itemId);
+
+        Collection<Booking> bookings = bookingRepo.findAllByItem_IdAndBooker_Id(itemId, authorId);
+        if (bookings.isEmpty()) {
+            throw new CommentingRestrictedException(
+                    String.format("User with id=%d cannot write comment for item with id=%d, " +
+                            "because he haven't booked this item", itemId, authorId));
+        }
+
+        LocalDateTime now = LocalDateTime.now();
+        for (Booking booking : bookings) {
+            if (booking.getStatus() == BookingStatus.APPROVED &&
+                    booking.getEnd().isBefore(now)) {
+                break;
+            }
+            throw new CommentingRestrictedException(
+                    String.format("User with id=%d cannot write comment for item with id=%d, " +
+                            "because his booking haven't ended yet, or it wasn't approved", authorId, itemId));
+        }
+
+        Comment comment = commentRepo.save(CommentMapper.toComment(commentRequestDto, now, item, author));
+        return CommentMapper.toCommentResponseDto(comment);
     }
 
     public Item add(Item item) throws UserNotFoundException {
@@ -41,14 +81,14 @@ public class ItemService {
     /**
      * Owner will be able to see item's last and next bookings
      */
-    public ItemWithBookingsDtoResponse getDtoById(long itemId, long userId)
+    public ItemWithBookingsResponseDto getDtoById(long itemId, long userId)
             throws ItemNotFoundException, UserNotFoundException {
         if (!userService.existsById(userId)) {
             throw new UserNotFoundException(
                     String.format("Cannot get item, because user with id=%d not found", userId));
         }
         Item item = getById(itemId);
-        ItemWithBookingsDtoResponse itemDto = itemMapper.toItemWithBookingsDtoResponse(item, null, null);
+        ItemWithBookingsResponseDto itemDto = itemMapper.toItemWithBookingsResponseDto(item, null, null);
 
         if (item.getOwner().getId() == userId) {
             setItemLastAndFirstBookingsOrNulls(itemDto);
@@ -64,20 +104,20 @@ public class ItemService {
         return itemOpt.get();
     }
 
-    public Collection<ItemWithBookingsDtoResponse> getAllByOwnerId(long ownerId) {
+    public Collection<ItemWithBookingsResponseDto> getAllByOwnerId(long ownerId) {
         Collection<Item> items = itemRepo.findAllByOwner_Id(ownerId);
 
-        List<ItemWithBookingsDtoResponse> itemDtos = new ArrayList<>();
+        List<ItemWithBookingsResponseDto> itemDtos = new ArrayList<>();
         for (Item item : items) {
-            ItemWithBookingsDtoResponse itemDto = itemMapper.toItemWithBookingsDtoResponse(item, null, null);
+            ItemWithBookingsResponseDto itemDto = itemMapper.toItemWithBookingsResponseDto(item, null, null);
             setItemLastAndFirstBookingsOrNulls(itemDto);
             itemDtos.add(itemDto);
         }
 
         //needed to pass the tests
-        Comparator<ItemWithBookingsDtoResponse> comparator = (i1, i2) -> {
-            SimpleBookingDtoResponse b1 = i1.getLastBooking();
-            SimpleBookingDtoResponse b2 = i2.getLastBooking();
+        Comparator<ItemWithBookingsResponseDto> comparator = (i1, i2) -> {
+            SimpleBookingResponseDto b1 = i1.getLastBooking();
+            SimpleBookingResponseDto b2 = i2.getLastBooking();
             if (b1 != null && b2 != null) {
                 return b1.getStart().compareTo(b2.getStart());
             }
@@ -95,16 +135,16 @@ public class ItemService {
         return itemDtos;
     }
 
-    private void setItemLastAndFirstBookingsOrNulls(ItemWithBookingsDtoResponse itemDto) {
+    private void setItemLastAndFirstBookingsOrNulls(ItemWithBookingsResponseDto itemDto) {
         Collection<Booking> bookings = bookingRepo.findAllByItem_Id(itemDto.getId());
 
         Optional<Booking> lastBooking = getItemLastBooking(bookings);
-        SimpleBookingDtoResponse lastBookingDto = lastBooking
-                .map(BookingMapper::toSimpleBookingDtoResponse).orElse(null);
+        SimpleBookingResponseDto lastBookingDto = lastBooking
+                .map(BookingMapper::toSimpleBookingResponseDto).orElse(null);
 
         Optional<Booking> nextBooking = getItemNextBooking(bookings);
-        SimpleBookingDtoResponse nextBookingDto = nextBooking
-                .map(BookingMapper::toSimpleBookingDtoResponse).orElse(null);
+        SimpleBookingResponseDto nextBookingDto = nextBooking
+                .map(BookingMapper::toSimpleBookingResponseDto).orElse(null);
 
         itemDto.setLastBooking(lastBookingDto);
         itemDto.setNextBooking(nextBookingDto);
@@ -124,7 +164,9 @@ public class ItemService {
         Comparator<LocalDateTime> timeComparator = (t1, t2) -> t1.isAfter(t2) ? 1 : -1;
 
         return itemBookings.stream()
-                .filter(b -> b.getStart().isAfter(LocalDateTime.now()))
+                .filter(b -> b.getStart().isAfter(LocalDateTime.now()) &&
+                        b.getStatus() != BookingStatus.CANCELED &&
+                        b.getStatus() != BookingStatus.REJECTED)
                 .min((b1, b2) -> timeComparator.compare(b1.getStart(), b2.getStart()));
     }
 
