@@ -2,10 +2,13 @@ package ru.practicum.shareit.item.model;
 
 import org.springframework.stereotype.Component;
 import ru.practicum.shareit.booking.model.dto.SimpleBookingResponseDto;
-import ru.practicum.shareit.item.model.dto.ItemWithBookingsResponseDto;
+import ru.practicum.shareit.item.model.dto.CommentResponseDto;
 import ru.practicum.shareit.item.model.dto.ItemDto;
+import ru.practicum.shareit.item.model.dto.ItemWithBookingsResponseDto;
 import ru.practicum.shareit.user.UserService;
 import ru.practicum.shareit.user.model.User;
+
+import java.util.List;
 
 @Component
 public class ItemMapper {
@@ -37,7 +40,8 @@ public class ItemMapper {
     }
 
     public ItemWithBookingsResponseDto toItemWithBookingsResponseDto(Item item, SimpleBookingResponseDto lastBooking,
-                                                                     SimpleBookingResponseDto nextBooking) {
+                                                                     SimpleBookingResponseDto nextBooking,
+                                                                     List<CommentResponseDto> commentResponseDtos) {
         return new ItemWithBookingsResponseDto(
                 item.getId(),
                 item.getName(),
@@ -46,6 +50,7 @@ public class ItemMapper {
                 item.getOwner().getId(),
                 lastBooking,
                 nextBooking,
+                commentResponseDtos,
                 item.getRequest());
     }
 }

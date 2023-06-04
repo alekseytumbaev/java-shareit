@@ -22,6 +22,7 @@ import ru.practicum.shareit.user.model.User;
 
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class ItemService {
@@ -88,7 +89,11 @@ public class ItemService {
                     String.format("Cannot get item, because user with id=%d not found", userId));
         }
         Item item = getById(itemId);
-        ItemWithBookingsResponseDto itemDto = itemMapper.toItemWithBookingsResponseDto(item, null, null);
+
+        List<CommentResponseDto> commentResponseDtos = commentRepo.findByItem_Id(itemId)
+                .stream().map(CommentMapper::toCommentResponseDto).collect(Collectors.toList());
+        ItemWithBookingsResponseDto itemDto = itemMapper.toItemWithBookingsResponseDto(item, null, null,
+                commentResponseDtos);
 
         if (item.getOwner().getId() == userId) {
             setItemLastAndFirstBookingsOrNulls(itemDto);
@@ -109,7 +114,10 @@ public class ItemService {
 
         List<ItemWithBookingsResponseDto> itemDtos = new ArrayList<>();
         for (Item item : items) {
-            ItemWithBookingsResponseDto itemDto = itemMapper.toItemWithBookingsResponseDto(item, null, null);
+            List<CommentResponseDto> commentResponseDtos = commentRepo.findByItem_Id(item.getId())
+                    .stream().map(CommentMapper::toCommentResponseDto).collect(Collectors.toList());
+            ItemWithBookingsResponseDto itemDto = itemMapper.toItemWithBookingsResponseDto(item, null, null,
+                    commentResponseDtos);
             setItemLastAndFirstBookingsOrNulls(itemDto);
             itemDtos.add(itemDto);
         }
@@ -155,7 +163,7 @@ public class ItemService {
         Comparator<LocalDateTime> timeComparator = (t1, t2) -> t1.isAfter(t2) ? 1 : -1;
 
         return itemBookings.stream()
-                .filter(b -> b.getEnd().isBefore(LocalDateTime.now()))
+                .filter(b -> b.getStart().isBefore(LocalDateTime.now()))
                 .max((b1, b2) -> timeComparator.compare(b1.getEnd(), b2.getEnd()));
     }
 

@@ -12,7 +12,6 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     @Query(
             "select b from Booking b " +
                     "where current_timestamp between b.start and b.end and " +
-                    "b.status = 'APPROVED' and " +
                     "b.booker.id = :bookerId " +
                     "order by b.start desc"
     )
@@ -43,7 +42,6 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     @Query(
             "select b from Booking b " +
                     "where current_timestamp between b.start and b.end and " +
-                    "b.status = 'APPROVED' and " +
                     "b.item.owner.id = :itemOwnerId " +
                     "order by b.start desc"
     )

@@ -4,6 +4,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import ru.practicum.shareit.booking.model.dto.SimpleBookingResponseDto;
 
+import java.util.List;
+
 @Data
 @AllArgsConstructor
 public class ItemWithBookingsResponseDto {
@@ -14,6 +16,7 @@ public class ItemWithBookingsResponseDto {
     private long ownerId;
     private SimpleBookingResponseDto lastBooking;
     private SimpleBookingResponseDto nextBooking;
+    private List<CommentResponseDto> comments;
 
     /**
      If item was created on the request of another user,
