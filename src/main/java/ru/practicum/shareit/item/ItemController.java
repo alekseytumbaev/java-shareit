@@ -24,11 +24,11 @@ import java.util.stream.Collectors;
 @Validated
 public class ItemController {
     private final ItemService itemService;
-    private final ItemMapper ItemMapper;
+    private final ItemMapper itemMapper;
 
     public ItemController(ItemService itemService, ru.practicum.shareit.item.model.ItemMapper itemMapper) {
         this.itemService = itemService;
-        ItemMapper = itemMapper;
+        this.itemMapper = itemMapper;
     }
 
     @PostMapping
@@ -39,10 +39,10 @@ public class ItemController {
         }
 
         itemDto.setOwnerId(ownerId);
-        Item itemToAdd = ItemMapper.toItem(itemDto);
+        Item itemToAdd = itemMapper.toItem(itemDto);
         Item addedItem = itemService.add(itemToAdd);
         log.info("Item with id={} was added", addedItem.getId());
-        return ItemMapper.toItemDto(addedItem);
+        return itemMapper.toItemDto(addedItem);
     }
 
     @GetMapping("/{itemId}")
@@ -57,7 +57,7 @@ public class ItemController {
     public Collection<ItemDto> searchByNameOrDescription(@RequestParam @NotNull @Size(max = 200) String text) {
         Collection<Item> items = itemService.searchByNameOrDescription(text);
         log.info("Items with '{}' in name or description retrieved", text);
-        return items.stream().map(ItemMapper::toItemDto).collect(Collectors.toList());
+        return items.stream().map(itemMapper::toItemDto).collect(Collectors.toList());
     }
 
     @GetMapping
@@ -73,10 +73,10 @@ public class ItemController {
                           @RequestHeader(Header.USER_ID_HEADER) long userId) {
         itemDto.setOwnerId(userId);
         itemDto.setId(itemId);
-        Item item = ItemMapper.toItem(itemDto);
+        Item item = itemMapper.toItem(itemDto);
         Item updatedItem = itemService.update(item);
         log.info("Item with id={} was updated", updatedItem.getId());
-        return ItemMapper.toItemDto(updatedItem);
+        return itemMapper.toItemDto(updatedItem);
     }
 
     @PostMapping("/{itemId}/comment")
