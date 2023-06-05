@@ -53,7 +53,7 @@ public class ItemService {
         if (bookings.isEmpty()) {
             throw new CommentingRestrictedException(
                     String.format("User with id=%d cannot write comment for item with id=%d, " +
-                            "because he haven't booked this item", itemId, authorId));
+                            "because he hasn't booked this item", itemId, authorId));
         }
 
         LocalDateTime now = LocalDateTime.now();
@@ -64,7 +64,7 @@ public class ItemService {
             }
             throw new CommentingRestrictedException(
                     String.format("User with id=%d cannot write comment for item with id=%d, " +
-                            "because his booking haven't ended yet, or it wasn't approved", authorId, itemId));
+                            "because his booking hasn't ended yet, or it wasn't approved", authorId, itemId));
         }
 
         Comment comment = commentRepo.save(CommentMapper.toComment(commentRequestDto, now, item, author));
