@@ -14,8 +14,7 @@ import javax.persistence.*;
 @NoArgsConstructor
 public class Item {
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "item_generator")
-    @SequenceGenerator(name = "item_generator", sequenceName = "item_seq")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "item_id")
     private long id;
     
@@ -26,6 +25,7 @@ public class Item {
     private Boolean available;
 
     @ManyToOne(optional = false)
+    @JoinColumn(name = "owner_id")
     private User owner;
 
     private String request;

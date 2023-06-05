@@ -16,8 +16,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 public class Booking {
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "booking_generator")
-    @SequenceGenerator(name = "booking_generator", sequenceName = "booking_seq")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "booking_id")
     private long id;
 
@@ -28,9 +27,11 @@ public class Booking {
     private LocalDateTime end;
 
     @ManyToOne(optional = false)
+    @JoinColumn(name = "booker_id")
     private User booker;
 
     @ManyToOne(optional = false)
+    @JoinColumn(name = "item_id")
     private Item item;
 
     @Enumerated(EnumType.STRING)

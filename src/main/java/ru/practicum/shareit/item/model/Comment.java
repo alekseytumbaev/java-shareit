@@ -16,8 +16,7 @@ import java.time.LocalDateTime;
 public class Comment {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "comment_generator")
-    @SequenceGenerator(name = "comment_generator", sequenceName = "comment_seq")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "comment_id")
     private long id;
 
@@ -25,8 +24,10 @@ public class Comment {
     private LocalDateTime created;
 
     @ManyToOne(optional = false)
+    @JoinColumn(name = "item_id")
     private Item item;
 
     @ManyToOne(optional = false)
+    @JoinColumn(name = "author_id")
     private User user;
 }
