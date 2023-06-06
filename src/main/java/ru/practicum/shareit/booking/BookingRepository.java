@@ -5,7 +5,7 @@ import org.springframework.data.jpa.repository.Query;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.BookingStatus;
 
-import java.util.Collection;
+import java.util.*;
 
 public interface BookingRepository extends JpaRepository<Booking, Long> {
 
@@ -69,7 +69,23 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
 
     Collection<Booking> findAllByItem_Owner_IdOrderByStartDesc(long itemOwnerId);
 
-    Collection<Booking> findAllByItem_Id(long itemId);
-
     Collection<Booking> findAllByItem_IdAndBooker_Id(long itemId, long bookerId);
+
+    @Query(
+            "select b.item.id, b from Booking b " +
+                    "where b.item.id in :itemIds"
+    )
+    List<Object[]> findAllByItem_Ids(Iterable<Long> itemIds);
+
+    default Map<Long, List<Booking>> findAllByItem_IdAsMap(Iterable<Long> itemIds) {
+        List<Object[]> results = findAllByItem_Ids(itemIds);
+        Map<Long, List<Booking>> itemIdToBookings = new HashMap<>();
+        for (Object[] result : results) {
+            Long itemId = (Long) result[0];
+            Booking booking = (Booking) result[1];
+            itemIdToBookings.putIfAbsent(itemId, new ArrayList<>());
+            itemIdToBookings.get(itemId).add(booking);
+        }
+        return itemIdToBookings;
+    }
 }

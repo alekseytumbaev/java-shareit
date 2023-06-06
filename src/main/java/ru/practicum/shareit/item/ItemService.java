@@ -88,13 +88,20 @@ public class ItemService {
         }
         Item item = getById(itemId);
 
-        List<CommentResponseDto> commentResponseDtos = commentRepo.findByItem_Id(itemId)
-                .stream().map(CommentMapper::toCommentResponseDto).collect(Collectors.toList());
+        List<Long> idAsList = List.of(itemId);
+        Map<Long, List<Comment>> itemIdToComments = commentRepo.findAllByItem_IdAsMap(idAsList);
+        Map<Long, List<Booking>> itemIdToBookings = bookingRepo.findAllByItem_IdAsMap(idAsList);
+
+        List<Comment> comments = itemIdToComments.get(itemId);
+        List<CommentResponseDto> commentResponseDtos = comments == null ? new ArrayList<>() :
+                comments.stream().map(CommentMapper::toCommentResponseDto).collect(Collectors.toList());
+
         ItemWithBookingsResponseDto itemDto = ItemMapper.toItemWithBookingsResponseDto(item, null, null,
                 commentResponseDtos);
 
-        if (item.getOwner().getId() == userId) {
-            setItemLastAndFirstBookingsOrNulls(itemDto);
+        List<Booking> bookings = itemIdToBookings.get(itemId);
+        if (item.getOwner().getId() == userId && bookings != null) {
+            setItemLastAndNextBookingsOrNulls(itemDto, bookings);
         }
         return itemDto;
     }
@@ -110,13 +117,23 @@ public class ItemService {
     public Collection<ItemWithBookingsResponseDto> getAllByOwnerId(long ownerId) {
         Collection<Item> items = itemRepo.findAllByOwner_Id(ownerId);
 
+        List<Long> itemIds = items.stream().map(Item::getId).collect(Collectors.toList());
+        Map<Long, List<Comment>> itemIdToComments = commentRepo.findAllByItem_IdAsMap(itemIds);
+        Map<Long, List<Booking>> itemIdToBookings = bookingRepo.findAllByItem_IdAsMap(itemIds);
+
         List<ItemWithBookingsResponseDto> itemDtos = new ArrayList<>();
         for (Item item : items) {
-            List<CommentResponseDto> commentResponseDtos = commentRepo.findByItem_Id(item.getId())
-                    .stream().map(CommentMapper::toCommentResponseDto).collect(Collectors.toList());
+            List<Comment> comments = itemIdToComments.get(item.getId());
+            List<CommentResponseDto> commentResponseDtos = comments == null ? new ArrayList<>() :
+                    comments.stream().map(CommentMapper::toCommentResponseDto).collect(Collectors.toList());
+
             ItemWithBookingsResponseDto itemDto = ItemMapper.toItemWithBookingsResponseDto(item, null, null,
                     commentResponseDtos);
-            setItemLastAndFirstBookingsOrNulls(itemDto);
+
+            List<Booking> bookings = itemIdToBookings.get(item.getId());
+            if (bookings != null) {
+                setItemLastAndNextBookingsOrNulls(itemDto, bookings);
+            }
             itemDtos.add(itemDto);
         }
 
@@ -135,25 +152,20 @@ public class ItemService {
             }
             return 0;
         };
-
         itemDtos.sort(comparator);
 
         return itemDtos;
     }
 
-    private void setItemLastAndFirstBookingsOrNulls(ItemWithBookingsResponseDto itemDto) {
-        Collection<Booking> bookings = bookingRepo.findAllByItem_Id(itemDto.getId());
-
-        Optional<Booking> lastBooking = getItemLastBooking(bookings);
-        SimpleBookingResponseDto lastBookingDto = lastBooking
-                .map(BookingMapper::toSimpleBookingResponseDto).orElse(null);
-
-        Optional<Booking> nextBooking = getItemNextBooking(bookings);
-        SimpleBookingResponseDto nextBookingDto = nextBooking
-                .map(BookingMapper::toSimpleBookingResponseDto).orElse(null);
-
-        itemDto.setLastBooking(lastBookingDto);
-        itemDto.setNextBooking(nextBookingDto);
+    private void setItemLastAndNextBookingsOrNulls(ItemWithBookingsResponseDto itemDto, List<Booking> itemBookings) {
+        Booking lastBooking = getItemLastBooking(itemBookings).orElse(null);
+        itemDto.setLastBooking(
+                lastBooking == null ? null : BookingMapper.toSimpleBookingResponseDto(lastBooking)
+        );
+        Booking nextBooking = getItemNextBooking(itemBookings).orElse(null);
+        itemDto.setNextBooking(
+                nextBooking == null ? null : BookingMapper.toSimpleBookingResponseDto(nextBooking)
+        );
     }
 
     private Optional<Booking> getItemLastBooking(Collection<Booking> itemBookings) {
