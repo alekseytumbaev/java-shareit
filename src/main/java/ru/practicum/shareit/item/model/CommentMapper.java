@@ -8,9 +8,9 @@ import java.time.LocalDateTime;
 
 public class CommentMapper {
 
-    public static Comment toComment(CommentRequestDto commentRequestDto, LocalDateTime created, Item item, User author) {
+    public static Comment toComment(CommentRequestDto commentRequestDto, long commentId, LocalDateTime created, Item item, User author) {
         return new Comment(
-                0,
+                commentId,
                 commentRequestDto.getText(),
                 created,
                 item,

@@ -32,9 +32,9 @@ public class BookingErrorHandler {
         return ErrorResponse.builder().error(message).build();
     }
 
-    @ExceptionHandler(UnknownBookingState.class)
+    @ExceptionHandler(UnknownBookingStateException.class)
     @ResponseStatus(BAD_REQUEST)
-    public ErrorResponse onUnknownBookingState(final UnknownBookingState e) {
+    public ErrorResponse onUnknownBookingState(final UnknownBookingStateException e) {
         String message = "Unknown state: " + e.getBookingState();
         log.warn(message, e);
         return ErrorResponse.builder().error(message).build();

@@ -3,9 +3,12 @@ package ru.practicum.shareit.user;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.error.global_exception.UserNotFoundException;
 import ru.practicum.shareit.user.model.User;
+import ru.practicum.shareit.user.model.UserDto;
+import ru.practicum.shareit.user.model.UserMapper;
 
 import java.util.Collection;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class UserService {
@@ -16,26 +19,33 @@ public class UserService {
         this.userRepo = userRepo;
     }
 
-    public User add(User user) {
-        return userRepo.save(user);
+    public UserDto add(UserDto userDto) {
+        userDto.setId(0);
+        User user = UserMapper.toUser(userDto);
+        return UserMapper.toUserDto(userRepo.save(user));
     }
 
-    public User update(User user) throws UserNotFoundException {
+    public UserDto update(UserDto user) throws UserNotFoundException {
         User presentedUser = getById(user.getId());
 
         //replace null fields with values from existing user
         if (user.getName() == null) {
             user.setName(presentedUser.getName());
         }
-        //check email uniqueness
         if (user.getEmail() == null) {
             user.setEmail(presentedUser.getEmail());
         }
-        return userRepo.save(user);
+
+        User updatedUser = userRepo.save(UserMapper.toUser(user));
+        return UserMapper.toUserDto(updatedUser);
     }
 
-    public Collection<User> getAll() {
-        return userRepo.findAll();
+    public Collection<UserDto> getAll() {
+        return userRepo.findAll().stream().map(UserMapper::toUserDto).collect(Collectors.toList());
+    }
+
+    public UserDto getDtoById(long id) throws UserNotFoundException {
+        return UserMapper.toUserDto(getById(id));
     }
 
     public User getById(long id) throws UserNotFoundException {

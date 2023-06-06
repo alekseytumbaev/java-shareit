@@ -2,11 +2,11 @@ package ru.practicum.shareit.booking.exception;
 
 import lombok.Getter;
 
-public class UnknownBookingState extends RuntimeException {
+public class UnknownBookingStateException extends RuntimeException {
     @Getter
     private final String bookingState;
 
-    public UnknownBookingState(String message, String bookingState) {
+    public UnknownBookingStateException(String message, String bookingState) {
         super(message);
         this.bookingState = bookingState;
     }

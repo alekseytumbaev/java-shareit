@@ -16,6 +16,7 @@ import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.model.ItemMapper;
 import ru.practicum.shareit.item.model.dto.CommentRequestDto;
 import ru.practicum.shareit.item.model.dto.CommentResponseDto;
+import ru.practicum.shareit.item.model.dto.ItemDto;
 import ru.practicum.shareit.item.model.dto.ItemWithBookingsResponseDto;
 import ru.practicum.shareit.user.UserService;
 import ru.practicum.shareit.user.model.User;
@@ -29,15 +30,13 @@ public class ItemService {
     private final ItemRepository itemRepo;
     private final UserService userService;
     private final BookingRepository bookingRepo;
-    private final ItemMapper itemMapper;
     private final CommentRepository commentRepo;
 
     public ItemService(ItemRepository itemRepo, UserService userService, BookingRepository bookingRepo,
-                       ItemMapper itemMapper, CommentRepository commentRepo) {
+                       CommentRepository commentRepo) {
         this.itemRepo = itemRepo;
         this.userService = userService;
         this.bookingRepo = bookingRepo;
-        this.itemMapper = itemMapper;
         this.commentRepo = commentRepo;
     }
 
@@ -67,16 +66,15 @@ public class ItemService {
                             "because his booking hasn't ended yet, or it wasn't approved", authorId, itemId));
         }
 
-        Comment comment = commentRepo.save(CommentMapper.toComment(commentRequestDto, now, item, author));
+        Comment comment = commentRepo.save(CommentMapper.toComment(commentRequestDto, 0, now, item, author));
         return CommentMapper.toCommentResponseDto(comment);
     }
 
-    public Item add(Item item) throws UserNotFoundException {
-        if (!userService.existsById(item.getOwner().getId())) {
-            throw new UserNotFoundException(
-                    String.format("Cannot add item, because owner with id=%d not found", item.getOwner().getId()));
-        }
-        return itemRepo.save(item);
+    public ItemDto add(ItemDto itemDto) throws UserNotFoundException {
+        User owner = userService.getById(itemDto.getOwnerId());
+        itemDto.setId(0);
+        Item item = ItemMapper.toItem(itemDto, owner);
+        return ItemMapper.toItemDto(itemRepo.save(item));
     }
 
     /**
@@ -92,7 +90,7 @@ public class ItemService {
 
         List<CommentResponseDto> commentResponseDtos = commentRepo.findByItem_Id(itemId)
                 .stream().map(CommentMapper::toCommentResponseDto).collect(Collectors.toList());
-        ItemWithBookingsResponseDto itemDto = itemMapper.toItemWithBookingsResponseDto(item, null, null,
+        ItemWithBookingsResponseDto itemDto = ItemMapper.toItemWithBookingsResponseDto(item, null, null,
                 commentResponseDtos);
 
         if (item.getOwner().getId() == userId) {
@@ -116,7 +114,7 @@ public class ItemService {
         for (Item item : items) {
             List<CommentResponseDto> commentResponseDtos = commentRepo.findByItem_Id(item.getId())
                     .stream().map(CommentMapper::toCommentResponseDto).collect(Collectors.toList());
-            ItemWithBookingsResponseDto itemDto = itemMapper.toItemWithBookingsResponseDto(item, null, null,
+            ItemWithBookingsResponseDto itemDto = ItemMapper.toItemWithBookingsResponseDto(item, null, null,
                     commentResponseDtos);
             setItemLastAndFirstBookingsOrNulls(itemDto);
             itemDtos.add(itemDto);
@@ -178,33 +176,35 @@ public class ItemService {
                 .min((b1, b2) -> timeComparator.compare(b1.getStart(), b2.getStart()));
     }
 
-    public Collection<Item> searchByNameOrDescription(String text) {
+    public Collection<ItemDto> searchByNameOrDescription(String text) {
         if (text.isBlank()) {
             return new ArrayList<>(0);
         }
-        return itemRepo.searchByNameOrDescription(text);
+        return itemRepo.searchByNameOrDescription(text)
+                .stream().map(ItemMapper::toItemDto).collect(Collectors.toList());
     }
 
-    public Item update(Item item) throws ItemNotFoundException {
-        Item presentedItem = getById(item.getId());
+    public ItemDto update(ItemDto itemDto) throws ItemNotFoundException {
+        Item presentedItem = getById(itemDto.getId());
 
-        if (item.getOwner().getId() != presentedItem.getOwner().getId()) {
+        if (itemDto.getOwnerId() != presentedItem.getOwner().getId()) {
             throw new UnauthorizedException(String.format("User with id=%d cannot update item owned by user with id=%d",
-                    item.getOwner().getId(), presentedItem.getOwner().getId()));
+                    itemDto.getOwnerId(), presentedItem.getOwner().getId()));
         }
 
         //replace null fields with values from existing item
-        if (item.getName() == null) {
-            item.setName(presentedItem.getName());
+        if (itemDto.getName() == null) {
+            itemDto.setName(presentedItem.getName());
         }
-        if (item.getDescription() == null) {
-            item.setDescription(presentedItem.getDescription());
+        if (itemDto.getDescription() == null) {
+            itemDto.setDescription(presentedItem.getDescription());
         }
-        if (item.getAvailable() == null) {
-            item.setAvailable(presentedItem.getAvailable());
+        if (itemDto.getAvailable() == null) {
+            itemDto.setAvailable(presentedItem.getAvailable());
         }
-        item.setRequest(presentedItem.getRequest());
+        itemDto.setRequest(presentedItem.getRequest());
 
-        return itemRepo.save(item);
+        Item item = ItemMapper.toItem(itemDto, presentedItem.getOwner());
+        return ItemMapper.toItemDto(itemRepo.save(item));
     }
 }

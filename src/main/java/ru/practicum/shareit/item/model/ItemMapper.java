@@ -1,25 +1,16 @@
 package ru.practicum.shareit.item.model;
 
-import org.springframework.stereotype.Component;
 import ru.practicum.shareit.booking.model.dto.SimpleBookingResponseDto;
 import ru.practicum.shareit.item.model.dto.CommentResponseDto;
 import ru.practicum.shareit.item.model.dto.ItemDto;
 import ru.practicum.shareit.item.model.dto.ItemWithBookingsResponseDto;
-import ru.practicum.shareit.user.UserService;
 import ru.practicum.shareit.user.model.User;
 
 import java.util.List;
 
-@Component
 public class ItemMapper {
-    private final UserService userService;
 
-    public ItemMapper(UserService userService) {
-        this.userService = userService;
-    }
-
-    public Item toItem(ItemDto itemDto) {
-        User owner = userService.getById(itemDto.getOwnerId());
+    public static Item toItem(ItemDto itemDto, User owner) {
         return new Item(
                 itemDto.getId(),
                 itemDto.getName(),
@@ -29,7 +20,7 @@ public class ItemMapper {
                 itemDto.getRequest());
     }
 
-    public ItemDto toItemDto(Item item) {
+    public static ItemDto toItemDto(Item item) {
         return new ItemDto(
                 item.getId(),
                 item.getName(),
@@ -39,7 +30,7 @@ public class ItemMapper {
                 item.getRequest());
     }
 
-    public ItemWithBookingsResponseDto toItemWithBookingsResponseDto(Item item, SimpleBookingResponseDto lastBooking,
+    public static ItemWithBookingsResponseDto toItemWithBookingsResponseDto(Item item, SimpleBookingResponseDto lastBooking,
                                                                      SimpleBookingResponseDto nextBooking,
                                                                      List<CommentResponseDto> commentResponseDtos) {
         return new ItemWithBookingsResponseDto(
