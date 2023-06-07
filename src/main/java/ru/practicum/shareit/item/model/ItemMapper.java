@@ -4,20 +4,22 @@ import ru.practicum.shareit.booking.model.dto.SimpleBookingResponseDto;
 import ru.practicum.shareit.item.model.dto.CommentResponseDto;
 import ru.practicum.shareit.item.model.dto.ItemDto;
 import ru.practicum.shareit.item.model.dto.ItemWithBookingsResponseDto;
+import ru.practicum.shareit.request.model.ItemRequest;
 import ru.practicum.shareit.user.model.User;
 
 import java.util.List;
 
 public class ItemMapper {
 
-    public static Item toItem(ItemDto itemDto, User owner) {
+    public static Item toItem(ItemDto itemDto, User owner, ItemRequest request) {
         return new Item(
                 itemDto.getId(),
                 itemDto.getName(),
                 itemDto.getDescription(),
                 itemDto.getAvailable(),
                 owner,
-                itemDto.getRequest());
+                request
+        );
     }
 
     public static ItemDto toItemDto(Item item) {
@@ -27,12 +29,13 @@ public class ItemMapper {
                 item.getDescription(),
                 item.getAvailable(),
                 item.getOwner().getId(),
-                item.getRequest());
+                item.getRequest() == null ? 0 : item.getRequest().getId()
+        );
     }
 
     public static ItemWithBookingsResponseDto toItemWithBookingsResponseDto(Item item, SimpleBookingResponseDto lastBooking,
-                                                                     SimpleBookingResponseDto nextBooking,
-                                                                     List<CommentResponseDto> commentResponseDtos) {
+                                                                            SimpleBookingResponseDto nextBooking,
+                                                                            List<CommentResponseDto> commentResponseDtos) {
         return new ItemWithBookingsResponseDto(
                 item.getId(),
                 item.getName(),
@@ -41,7 +44,7 @@ public class ItemMapper {
                 item.getOwner().getId(),
                 lastBooking,
                 nextBooking,
-                commentResponseDtos,
-                item.getRequest());
+                commentResponseDtos
+        );
     }
 }

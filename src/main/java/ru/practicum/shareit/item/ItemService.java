@@ -18,6 +18,9 @@ import ru.practicum.shareit.item.model.dto.CommentRequestDto;
 import ru.practicum.shareit.item.model.dto.CommentResponseDto;
 import ru.practicum.shareit.item.model.dto.ItemDto;
 import ru.practicum.shareit.item.model.dto.ItemWithBookingsResponseDto;
+import ru.practicum.shareit.request.ItemRequestRepository;
+import ru.practicum.shareit.request.exception.ItemRequestNotFoundException;
+import ru.practicum.shareit.request.model.ItemRequest;
 import ru.practicum.shareit.user.UserService;
 import ru.practicum.shareit.user.model.User;
 
@@ -31,13 +34,15 @@ public class ItemService {
     private final UserService userService;
     private final BookingRepository bookingRepo;
     private final CommentRepository commentRepo;
+    private final ItemRequestRepository requestRepo;
 
     public ItemService(ItemRepository itemRepo, UserService userService, BookingRepository bookingRepo,
-                       CommentRepository commentRepo) {
+                       CommentRepository commentRepo, ItemRequestRepository requestRepo) {
         this.itemRepo = itemRepo;
         this.userService = userService;
         this.bookingRepo = bookingRepo;
         this.commentRepo = commentRepo;
+        this.requestRepo = requestRepo;
     }
 
     /**
@@ -71,9 +76,15 @@ public class ItemService {
     }
 
     public ItemDto add(ItemDto itemDto) throws UserNotFoundException {
-        User owner = userService.getById(itemDto.getOwnerId());
         itemDto.setId(0);
-        Item item = ItemMapper.toItem(itemDto, owner);
+        User owner = userService.getById(itemDto.getOwnerId());
+        if (itemDto.getRequestId() == 0) {
+            Item item = ItemMapper.toItem(itemDto, owner, null);
+            return ItemMapper.toItemDto(itemRepo.save(item));
+        }
+
+        ItemRequest request = getRequestById(itemDto.getRequestId());
+        Item item = ItemMapper.toItem(itemDto, owner, request);
         return ItemMapper.toItemDto(itemRepo.save(item));
     }
 
@@ -196,7 +207,7 @@ public class ItemService {
                 .stream().map(ItemMapper::toItemDto).collect(Collectors.toList());
     }
 
-    public ItemDto update(ItemDto itemDto) throws ItemNotFoundException {
+    public ItemDto update(ItemDto itemDto) throws ItemNotFoundException, ItemRequestNotFoundException {
         Item presentedItem = getById(itemDto.getId());
 
         if (itemDto.getOwnerId() != presentedItem.getOwner().getId()) {
@@ -214,9 +225,22 @@ public class ItemService {
         if (itemDto.getAvailable() == null) {
             itemDto.setAvailable(presentedItem.getAvailable());
         }
-        itemDto.setRequest(presentedItem.getRequest());
+        ItemRequest itemRequest = null;
+        if (itemDto.getRequestId() == 0) {
+            if (presentedItem.getRequest() != null) {
+                itemDto.setRequestId(presentedItem.getRequest().getId());
+            }
+        } else {
+            itemRequest = getRequestById(itemDto.getRequestId());
+        }
 
-        Item item = ItemMapper.toItem(itemDto, presentedItem.getOwner());
+        Item item = ItemMapper.toItem(itemDto, presentedItem.getOwner(), itemRequest);
         return ItemMapper.toItemDto(itemRepo.save(item));
+    }
+
+    private ItemRequest getRequestById(long id) throws ItemRequestNotFoundException {
+        return requestRepo.findById(id).orElseThrow(() ->
+                new ItemRequestNotFoundException(String.format("Item request with id=%d not found", id))
+        );
     }
 }

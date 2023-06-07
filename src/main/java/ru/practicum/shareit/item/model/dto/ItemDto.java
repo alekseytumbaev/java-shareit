@@ -17,10 +17,5 @@ public class ItemDto {
 
     private Boolean available;
     private long ownerId;
-
-    /**
-    If item was created on the request of another user,
-    then in this field will store a link to the corresponding request
-     */
-    private String request;
+    private long requestId;
 }
