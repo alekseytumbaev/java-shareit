@@ -1,58 +1,66 @@
 package ru.practicum.shareit.user;
 
 import org.springframework.stereotype.Service;
-import ru.practicum.shareit.user.exception.EmailAlreadyExistsException;
-import ru.practicum.shareit.user.exception.UserNotFoundException;
-import ru.practicum.shareit.user.storage.UserStorage;
+import ru.practicum.shareit.error.global_exception.UserNotFoundException;
+import ru.practicum.shareit.user.model.User;
+import ru.practicum.shareit.user.model.UserDto;
+import ru.practicum.shareit.user.model.UserMapper;
 
 import java.util.Collection;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class UserService {
 
-    private final UserStorage userStorage;
+    private final UserRepository userRepo;
 
-    public UserService(UserStorage userStorage) {
-        this.userStorage = userStorage;
+    public UserService(UserRepository userRepo) {
+        this.userRepo = userRepo;
     }
 
-    public User add(User user) throws EmailAlreadyExistsException {
-        return userStorage.add(user);
+    public UserDto add(UserDto userDto) {
+        userDto.setId(0);
+        User user = UserMapper.toUser(userDto);
+        return UserMapper.toUserDto(userRepo.save(user));
     }
 
-    public User update(User user) throws UserNotFoundException {
-        Optional<User> userOpt = userStorage.getById(user.getId());
-        if (userOpt.isEmpty())
-            throw new UserNotFoundException(String.format("User with id=%d not found", user.getId()));
+    public UserDto update(UserDto user) throws UserNotFoundException {
+        User presentedUser = getById(user.getId());
 
         //replace null fields with values from existing user
-        User presentedUser = userOpt.get();
-        if (user.getName() == null)
+        if (user.getName() == null) {
             user.setName(presentedUser.getName());
-        if (user.getEmail() == null)
+        }
+        if (user.getEmail() == null) {
             user.setEmail(presentedUser.getEmail());
+        }
 
-        return userStorage.update(user);
+        User updatedUser = userRepo.save(UserMapper.toUser(user));
+        return UserMapper.toUserDto(updatedUser);
     }
 
-    public Collection<User> getAll() {
-        return userStorage.getAll();
+    public Collection<UserDto> getAll() {
+        return userRepo.findAll().stream().map(UserMapper::toUserDto).collect(Collectors.toList());
+    }
+
+    public UserDto getDtoById(long id) throws UserNotFoundException {
+        return UserMapper.toUserDto(getById(id));
     }
 
     public User getById(long id) throws UserNotFoundException {
-        Optional<User> userOpt = userStorage.getById(id);
-        if (userOpt.isEmpty())
+        Optional<User> userOpt = userRepo.findById(id);
+        if (userOpt.isEmpty()) {
             throw new UserNotFoundException(String.format("User with id=%d not found", id));
-
+        }
         return userOpt.get();
     }
 
     public boolean existsById(long id) {
-        return userStorage.existsById(id);
+        return userRepo.existsById(id);
     }
 
     public void delete(long id) {
-        userStorage.delete(id);
+        userRepo.deleteById(id);
     }
 }

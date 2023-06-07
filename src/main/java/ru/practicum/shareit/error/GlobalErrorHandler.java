@@ -3,14 +3,17 @@ package ru.practicum.shareit.error;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.FieldError;
-import org.springframework.web.bind.MethodArgumentNotValidException;
-import org.springframework.web.bind.MissingRequestHeaderException;
+import org.springframework.validation.ObjectError;
+import org.springframework.web.bind.*;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import ru.practicum.shareit.error.global_exception.UnauthorizedException;
 import ru.practicum.shareit.error.validation_violation.FieldValidationViolation;
 import ru.practicum.shareit.error.validation_violation.HttpAttributeValidationViolation;
-import ru.practicum.shareit.user.exception.UserNotFoundException;
+import ru.practicum.shareit.error.validation_violation.ObjectValidationViolation;
+import ru.practicum.shareit.error.global_exception.UserNotFoundException;
 
 import javax.validation.ConstraintViolationException;
 import java.util.LinkedList;
@@ -27,34 +30,55 @@ public class GlobalErrorHandler {
     public ErrorResponse onUserNotFoundException(final UserNotFoundException e) {
         String message = "User not found";
         log.warn(message, e);
-        return ErrorResponse.builder().message(message).build();
+        return ErrorResponse.builder().error(message).build();
     }
 
+    @ExceptionHandler(UnauthorizedException.class)
+    @ResponseStatus(NOT_FOUND)
+    public ErrorResponse onUnauthorizedException(final UnauthorizedException e) {
+        String message = "User doesn't have access to this operation";
+        log.warn(message, e);
+        return ErrorResponse.builder().error(message).build();
+    }
+
+    //May be thrown when request body required, but not found
     @ExceptionHandler(HttpMessageNotReadableException.class)
     @ResponseStatus(BAD_REQUEST)
     public ErrorResponse onHttpMessageNotReadableException(final HttpMessageNotReadableException e) {
-        String message = "Http request is corrupted";
+        String message = "Http request is corrupted: " + e.getHttpInputMessage();
         log.warn(message, e);
-        return ErrorResponse.builder().message(message).build();
+        return ErrorResponse.builder().error(message).build();
     }
 
-    //Fields validation violations
+    //Fields validation violations and object validation violations
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(BAD_REQUEST)
     public ErrorResponse onMethodArgumentNotValidException(final MethodArgumentNotValidException e) {
-        List<FieldValidationViolation> violations = new LinkedList<>();
+        List<FieldValidationViolation> fieldViolations = new LinkedList<>();
         for (FieldError fieldError : e.getBindingResult().getFieldErrors()) {
             FieldValidationViolation violation = new FieldValidationViolation(
                     fieldError.getField(), fieldError.getDefaultMessage());
-            violations.add(violation);
+            fieldViolations.add(violation);
         }
+
+        List<ObjectValidationViolation> objectViolations = new LinkedList<>();
+        for (ObjectError objectError : e.getBindingResult().getGlobalErrors()) {
+            ObjectValidationViolation violation = new ObjectValidationViolation(objectError.getDefaultMessage());
+            objectViolations.add(violation);
+        }
+
         String message = "Validation failed";
-        ErrorResponse error = ErrorResponse.builder().message(message).fieldValidationViolations(violations).build();
+        ErrorResponse error = ErrorResponse.builder()
+                .error(message)
+                .fieldValidationViolations(fieldViolations)
+                .objectValidationViolations(objectViolations)
+                .build();
+
         log.warn("{}: {}", message, error, e);
         return error;
     }
 
-    //Path variables, headers, request parameters violations
+    //Http attributes (path variables, headers, request parameters) violations -----------------------------------------
     @ExceptionHandler(ConstraintViolationException.class)
     @ResponseStatus(BAD_REQUEST)
     public ErrorResponse onConstraintViolationException(final ConstraintViolationException e) {
@@ -67,21 +91,33 @@ public class GlobalErrorHandler {
                     new HttpAttributeValidationViolation(parameter, violation.getMessage());
             violations.add(pathVariableViolation);
         });
-        ErrorResponse error = ErrorResponse.builder().message(message).httpAttributeValidationViolations(violations).build();
+        ErrorResponse error = ErrorResponse.builder().error(message).httpAttributeValidationViolations(violations).build();
         log.warn("{}: {}", message, error, e);
         return error;
     }
 
-    @ExceptionHandler(MissingRequestHeaderException.class)
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     @ResponseStatus(BAD_REQUEST)
-    public ErrorResponse onMissingRequestHeaderException(final MissingRequestHeaderException e) {
-        return ErrorResponse.builder().message(String.format("'%s' request header is missing", e.getHeaderName())).build();
+    public ErrorResponse onMethodArgumentTypeMismatchException(final MethodArgumentTypeMismatchException e) {
+        String message = String.format("Http attribute '%s' must be of type '%s', but was equal to '%s'",
+                e.getName(), e.getRequiredType(), e.getValue());
+        log.warn(message, e);
+        return ErrorResponse.builder().error(message).build();
     }
+
+    @ExceptionHandler(MissingRequestValueException.class)
+    @ResponseStatus(BAD_REQUEST)
+    public ErrorResponse onMissingRequestValueException(final MissingRequestValueException e) {
+        String message = e.getMessage() == null ? "Some http request attribute is missing" : e.getMessage();
+        log.warn(message, e);
+        return ErrorResponse.builder().error(message).build();
+    }
+    //------------------------------------------------------------------------------------------------------------------
 
     @ExceptionHandler(Throwable.class)
     @ResponseStatus(INTERNAL_SERVER_ERROR)
     public ErrorResponse onThrowable(final Throwable e) {
         log.error("Unexpected error occurred", e);
-        return ErrorResponse.builder().message("Internal server error").build();
+        return ErrorResponse.builder().error("Unexpected error occurred: " + e.getMessage()).build();
     }
 }
