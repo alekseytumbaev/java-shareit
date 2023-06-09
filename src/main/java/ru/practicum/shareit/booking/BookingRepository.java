@@ -1,5 +1,7 @@
 package ru.practicum.shareit.booking;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import ru.practicum.shareit.booking.model.Booking;
@@ -12,32 +14,29 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     @Query(
             "select b from Booking b " +
                     "where current_timestamp between b.start and b.end and " +
-                    "b.booker.id = :bookerId " +
-                    "order by b.start desc"
+                    "b.booker.id = :bookerId"
     )
-    Collection<Booking> findAllCurrentByBooker_IdOrderByStartDesc(long bookerId);
+    Page<Booking> findAllCurrentByBooker_Id(long bookerId, PageRequest pageRequest);
 
     @Query(
             "select b from Booking b " +
                     "where b.end < current_timestamp and " +
                     "b.status = 'APPROVED' and " +
-                    "b.booker.id = :bookerId " +
-                    "order by b.start desc"
+                    "b.booker.id = :bookerId"
     )
-    Collection<Booking> findAllPastByBooker_IdOrderByStartDesc(long bookerId);
+    Page<Booking> findAllPastByBooker_Id(long bookerId, PageRequest pageRequest);
 
     @Query(
             "select b from Booking b " +
                     "where b.start > current_timestamp and " +
                     "(b.status = 'APPROVED' or b.status = 'WAITING') and " +
-                    "b.booker.id = :bookerId " +
-                    "order by b.start desc"
+                    "b.booker.id = :bookerId"
     )
-    Collection<Booking> findAllFutureByBooker_IdOrderByStartDesc(long bookerId);
+    Page<Booking> findAllFutureByBooker_Id(long bookerId, PageRequest pageRequest);
 
-    Collection<Booking> findAllByStatusAndBooker_IdOrderByStartDesc(BookingStatus bookingStatus, long bookerId);
+    Page<Booking> findAllByStatusAndBooker_Id(BookingStatus bookingStatus, long bookerId, PageRequest pageRequest);
 
-    Collection<Booking> findAllByBooker_IdOrderByStartDesc(long bookerId);
+    Page<Booking> findAllByBooker_Id(long bookerId, PageRequest pageRequest);
 
     @Query(
             "select b from Booking b " +
@@ -45,7 +44,7 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
                     "b.item.owner.id = :itemOwnerId " +
                     "order by b.start desc"
     )
-    Collection<Booking> findAllCurrentByItem_Owner_IdOrderByStartDesc(long itemOwnerId);
+    Page<Booking> findAllCurrentByItem_Owner_IdOrderByStartDesc(long itemOwnerId, PageRequest pageRequest);
 
     @Query(
             "select b from Booking b " +
@@ -54,7 +53,7 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
                     "b.item.owner.id = :itemOwnerId " +
                     "order by b.start desc"
     )
-    Collection<Booking> findAllPastByItem_Owner_IdOrderByStartDesc(long itemOwnerId);
+    Page<Booking> findAllPastByItem_Owner_IdOrderByStartDesc(long itemOwnerId, PageRequest pageRequest);
 
     @Query(
             "select b from Booking b " +
@@ -63,11 +62,12 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
                     "b.item.owner.id = :itemOwnerId " +
                     "order by b.start desc"
     )
-    Collection<Booking> findAllFutureByItem_Owner_IdOrderByStartDesc(long itemOwnerId);
+    Page<Booking> findAllFutureByItem_Owner_IdOrderByStartDesc(long itemOwnerId, PageRequest pageRequest);
 
-    Collection<Booking> findAllByStatusAndItem_Owner_IdOrderByStartDesc(BookingStatus bookingStatus, long itemOwnerId);
+    Page<Booking> findAllByStatusAndItem_Owner_IdOrderByStartDesc(BookingStatus bookingStatus, long itemOwnerId,
+                                                                        PageRequest pageRequest);
 
-    Collection<Booking> findAllByItem_Owner_IdOrderByStartDesc(long itemOwnerId);
+    Page<Booking> findAllByItem_Owner_IdOrderByStartDesc(long itemOwnerId, PageRequest pageRequest);
 
     Collection<Booking> findAllByItem_IdAndBooker_Id(long itemId, long bookerId);
 
