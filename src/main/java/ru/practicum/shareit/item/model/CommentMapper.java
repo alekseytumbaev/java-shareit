@@ -22,7 +22,7 @@ public class CommentMapper {
         return new CommentResponseDto(
                 comment.getId(),
                 comment.getText(),
-                comment.getUser().getName(),
+                comment.getAuthor().getName(),
                 comment.getCreated()
         );
     }

@@ -63,7 +63,7 @@ public class BookingService {
     }
 
     public BookingResponseDto add(BookingRequestDto bookingRequestDto, long bookerId)
-            throws ItemUnavailableException, ItemNotFoundException, UserNotFoundException {
+            throws ItemUnavailableException, ItemNotFoundException, UserNotFoundException, SameItemOwnerAndBookerIdException {
         Item item = itemService.getById(bookingRequestDto.getItemId());
         User booker = userService.getById(bookerId);
 
@@ -86,7 +86,8 @@ public class BookingService {
     }
 
     public BookingResponseDto changeStatus(long bookingId, long itemOwnerId, boolean approved)
-            throws UnauthorizedException, BookingNotFoundException, UserNotFoundException, ItemNotFoundException {
+            throws UnauthorizedException, BookingNotFoundException, UserNotFoundException, ItemNotFoundException,
+            BookingAlreadyApprovedException {
 
         Booking booking = getById(bookingId);
         if (booking.getItem().getOwner().getId() != itemOwnerId) {
@@ -109,7 +110,7 @@ public class BookingService {
 
     public Collection<BookingResponseDto> getAllByBookerIdSortedByStartTimeDesc(long bookerId, BookingState state,
                                                                                 int from, int size)
-            throws BookingNotFoundException {
+            throws UserNotFoundException {
         if (!userService.existsById(bookerId)) {
             throw new UserNotFoundException(
                     String.format("Cannot retrieve user's bookings, because user with id=%d not found", bookerId));
@@ -150,7 +151,7 @@ public class BookingService {
 
     public Collection<BookingResponseDto> getAllByItemOwnerIdSortedByStartTimeDesc(long itemOwnerId, BookingState state,
                                                                                    int from, int size)
-            throws BookingNotFoundException {
+            throws UserNotFoundException {
         if (!userService.existsById(itemOwnerId)) {
             throw new UserNotFoundException(
                     String.format("User with id=%d not found, cannot retrieve bookings for user's items", itemOwnerId));
