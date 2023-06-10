@@ -18,8 +18,9 @@ public interface ItemRepository extends JpaRepository<Item, Long> {
     @Query(
             "select i from Item i " +
                     "where i.available = true and (" +
-                    "(i.name) like upper(concat('%',:text,'%')) or " +
-                    "upper(i.description) like upper(concat('%',:text,'%')))"
+                    "upper(i.name) like upper(concat('%',:text,'%')) or " +
+                    "upper(i.description) like upper(concat('%',:text,'%'))" +
+                    ")"
     )
     Page<Item> searchByNameOrDescription(String text, PageRequest pageRequest);
 

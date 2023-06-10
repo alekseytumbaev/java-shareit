@@ -34,8 +34,7 @@ import java.time.LocalDateTime;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -53,6 +52,55 @@ class ItemServiceTest {
 
     @InjectMocks
     private ItemService itemService;
+
+
+    @Test
+    @DisplayName("Should return an empty list when the search query is blank")
+    void searchByNameOrDescriptionReturnsEmptyListWhenQueryIsBlank() {
+        String text = "";
+        int from = 0;
+        int size = 10;
+        Collection<ItemDto> result = itemService.searchByNameOrDescription(text, from, size);
+
+        assertTrue(result.isEmpty());
+    }
+
+    @Test
+    @DisplayName("Should return an empty list when no items match the search query")
+    void searchByNameOrDescriptionReturnsEmptyListWhenNoMatches() {
+        String searchText = "test";
+        int from = 0;
+        int size = 10;
+        List<Item> itemList = new ArrayList<>();
+        Page<Item> itemPage = new PageImpl<>(itemList);
+        when(itemRepo.searchByNameOrDescription(anyString(), any(PageRequest.class))).thenReturn(itemPage);
+
+        Collection<ItemDto> result = itemService.searchByNameOrDescription(searchText, from, size);
+
+        assertTrue(result.isEmpty());
+        verify(itemRepo, times(1)).searchByNameOrDescription(searchText, PageRequest.of(0, size));
+    }
+
+    @Test
+    @DisplayName("Should return a list of items with matching name or description")
+    void searchByNameOrDescriptionReturnsMatchingItems() {
+        List<Item> itemList = new ArrayList<>();
+        itemList.add(new Item(1L, "Item 1", "Description 1", true, new User(1L, "User 1", "user1@example.com"), null));
+        itemList.add(new Item(2L, "Item 2", "Description 2", false, new
+                User(2L, "User 2", "user2@example.com"), null));
+        itemList.add(new Item(3L, "Item 3", "Description 3", true, new
+                User(3L, "User 3", "user3@example.com"), null));
+        Page<Item> itemPage = new PageImpl<>(itemList);
+
+        when(itemRepo.searchByNameOrDescription(anyString(), any(PageRequest.class))).thenReturn(itemPage);
+
+        Collection<ItemDto> result = itemService.searchByNameOrDescription("Item", 0, 10);
+
+        assertEquals(3, result.size());
+        assertTrue(result.stream().anyMatch(itemDto -> itemDto.getId() == 1L));
+        assertTrue(result.stream().anyMatch(itemDto -> itemDto.getId() == 2L));
+        assertTrue(result.stream().anyMatch(itemDto -> itemDto.getId() == 3L));
+    }
 
     @Test
     public void testGetDtoById() throws ItemNotFoundException, UserNotFoundException {
