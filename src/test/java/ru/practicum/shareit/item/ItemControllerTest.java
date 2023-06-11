@@ -14,7 +14,6 @@ import ru.practicum.shareit.item.model.dto.CommentRequestDto;
 import ru.practicum.shareit.item.model.dto.CommentResponseDto;
 import ru.practicum.shareit.item.model.dto.ItemDto;
 import ru.practicum.shareit.item.model.dto.ItemWithBookingsResponseDto;
-import ru.practicum.shareit.user.model.UserDto;
 import ru.practicum.shareit.util.constant.Header;
 
 import java.time.LocalDateTime;

@@ -16,7 +16,6 @@ import ru.practicum.shareit.error.global_exception.UnauthorizedException;
 import ru.practicum.shareit.error.global_exception.UserNotFoundException;
 import ru.practicum.shareit.item.exception.CommentingRestrictedException;
 import ru.practicum.shareit.item.exception.ItemNotFoundException;
-import ru.practicum.shareit.item.exception.ItemNullFieldsException;
 import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.CommentMapper;
 import ru.practicum.shareit.item.model.Item;
