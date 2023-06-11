@@ -75,10 +75,10 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
             "select b.item.id, b from Booking b " +
                     "where b.item.id in :itemIds"
     )
-    List<Object[]> findAllByItem_Ids(Iterable<Long> itemIds);
+    List<Object[]> findAllByItem_Id(Iterable<Long> itemIds);
 
     default Map<Long, List<Booking>> findAllByItem_IdAsMap(Iterable<Long> itemIds) {
-        List<Object[]> results = findAllByItem_Ids(itemIds);
+        List<Object[]> results = findAllByItem_Id(itemIds);
         Map<Long, List<Booking>> itemIdToBookings = new HashMap<>();
         for (Object[] result : results) {
             Long itemId = (Long) result[0];

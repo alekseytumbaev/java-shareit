@@ -178,7 +178,7 @@ public class ItemServiceWithDatabaseTest {
     }
 
     @Test
-    @DisplayName("Should search by name or descripiton")
+    @DisplayName("Should search by name or description")
     void searchByNameOrDescription() {
         UserDto owner = userService.add(new UserDto(0, "owner", "email@mail.com"));
         long ownerId = owner.getId();
