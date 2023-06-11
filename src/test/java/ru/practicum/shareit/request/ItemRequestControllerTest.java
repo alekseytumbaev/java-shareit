@@ -8,6 +8,8 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import ru.practicum.shareit.item.exception.ItemNotFoundException;
+import ru.practicum.shareit.request.exception.ItemRequestNotFoundException;
 import ru.practicum.shareit.request.model.dto.ItemRequestRequestDto;
 import ru.practicum.shareit.request.model.dto.ItemRequestResponseDto;
 import ru.practicum.shareit.util.constant.Header;
@@ -107,6 +109,20 @@ public class ItemRequestControllerTest {
                 .andExpect(jsonPath("$.id", is((int) responseDto.getId())))
                 .andExpect(jsonPath("$.description", is(responseDto.getDescription())))
                 .andExpect(jsonPath("$.items", hasSize(0)));
+    }
+
+    @Test
+    @DisplayName("Should throw exception when item request not found")
+    public void getByIdNotFound() throws Exception {
+        long userId = 1L;
+        long requestId = 1L;
+
+        when(itemRequestService.getById(requestId, userId)).thenThrow(new ItemRequestNotFoundException("Item not found"));
+
+        mockMvc.perform(get("/items/{itemId}", requestId)
+                        .header(Header.USER_ID_HEADER, userId)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound());
     }
 
     @Test
