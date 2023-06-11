@@ -2,6 +2,7 @@ package ru.practicum.shareit.booking.model.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import ru.practicum.shareit.util.annotation.StartBeforeEndTime;
 
 import javax.validation.constraints.Future;
@@ -11,6 +12,7 @@ import java.time.LocalDateTime;
 
 @Data
 @AllArgsConstructor
+@NoArgsConstructor
 @StartBeforeEndTime(startField = "start", endField = "end")
 public class BookingRequestDto {
 

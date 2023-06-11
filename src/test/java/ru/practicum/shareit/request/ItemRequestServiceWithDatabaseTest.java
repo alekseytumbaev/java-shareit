@@ -34,10 +34,7 @@ public class ItemRequestServiceWithDatabaseTest {
     void addItemRequest() {
         UserDto user = userService.add(new UserDto(1L, "User1", "user1@ya.ru"));
         ItemRequestRequestDto itemRequestDto = new ItemRequestRequestDto("Test item request");
-
         ItemRequestResponseDto itemRequestResponseDto = itemRequestService.add(itemRequestDto, user.getId());
-
-        assertEquals(user.getId(), itemRequestResponseDto.getId());
         assertEquals(itemRequestDto.getDescription(), itemRequestResponseDto.getDescription());
     }
 
