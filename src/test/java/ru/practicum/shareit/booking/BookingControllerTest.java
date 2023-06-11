@@ -126,7 +126,6 @@ public class BookingControllerTest {
         long bookingId = 1L;
         long userId = 2L;
         boolean approved = true;
-        LocalDateTime now = LocalDateTime.now();
 
         when(bookingService.changeStatus(bookingId, userId, approved))
                 .thenThrow(new BookingAlreadyApprovedException("Booking already approved"));
