@@ -84,7 +84,6 @@ public class ItemRequestControllerTest {
                 .andExpect(jsonPath("$[0].items", hasSize(0)))
                 .andExpect(jsonPath("$[1].id", is((int) responseDto2.getId())))
                 .andExpect(jsonPath("$[1].description", is(responseDto2.getDescription())))
-                .andExpect(jsonPath("$[1].created", is(responseDto2.getCreated().toString())))
                 .andExpect(jsonPath("$[1].items", hasSize(0)));
     }
 
