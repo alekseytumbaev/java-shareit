@@ -9,10 +9,12 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import ru.practicum.shareit.item.exception.ItemNotFoundException;
 import ru.practicum.shareit.item.model.dto.CommentRequestDto;
 import ru.practicum.shareit.item.model.dto.CommentResponseDto;
 import ru.practicum.shareit.item.model.dto.ItemDto;
 import ru.practicum.shareit.item.model.dto.ItemWithBookingsResponseDto;
+import ru.practicum.shareit.user.model.UserDto;
 import ru.practicum.shareit.util.constant.Header;
 
 import java.time.LocalDateTime;
@@ -51,6 +53,59 @@ public class ItemControllerTest {
     }
 
     @Test
+    @DisplayName("Should throw exception when null fields")
+    public void addWhenNullFieldsThenException() throws Exception {
+        mockMvc.perform(post("/items")
+                        .header(Header.USER_ID_HEADER, 1)
+                        .content("{\"name\": null,\"description\":\"description\",\"available\":true}")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("Should throw exception when adding with no user id header")
+    public void addWhenNoUserIdHeaderThenException() throws Exception {
+        mockMvc.perform(post("/items")
+                        .content("{\"name\":\"name\",\"description\":\"description\",\"available\":true}")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("Should throw exception when wrong type of user id header")
+    public void addWhenWrongUserIdHeader() throws Exception {
+        mockMvc.perform(post("/items", 1L)
+                        .header(Header.USER_ID_HEADER, "asdfsadf")
+                        .content("{\"name\":\"name\",\"description\":\"description\",\"available\":true}")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("Should throw exception when request body is empty")
+    public void addWhenUnknownException() throws Exception {
+        long ownerId = 1L;
+        ItemDto itemDto = new ItemDto(0, "name", "description", true, ownerId, 0);
+        when(itemService.add(itemDto)).thenThrow(new RuntimeException("Unknown exception"));
+
+        mockMvc.perform(post("/items")
+                        .header(Header.USER_ID_HEADER, ownerId)
+                        .content("{\"name\":\"name\",\"description\":\"description\",\"available\":true}")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isInternalServerError());
+    }
+
+    @Test
+    @DisplayName("Should return 500 when unknown exception")
+    public void addWhenRequestBodyIsEmptyThenException() throws Exception {
+        mockMvc.perform(post("/items")
+                        .header(Header.USER_ID_HEADER, 1)
+                        .content("")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
     @DisplayName("Should get item by id")
     public void getById() throws Exception {
         long userId = 1L;
@@ -69,6 +124,19 @@ public class ItemControllerTest {
                 .andExpect(jsonPath("$.name").value("name"))
                 .andExpect(jsonPath("$.description").value("description"))
                 .andExpect(jsonPath("$.available").value(true));
+    }
+
+    @Test
+    @DisplayName("Should throw exception when item not found")
+    public void getByIdWhenItemNotFoundThenException() throws Exception {
+        long userId = 1L;
+        long itemId = 2L;
+        when(itemService.getDtoById(itemId, userId)).thenThrow(new ItemNotFoundException("Item not found"));
+
+        mockMvc.perform(get("/items/{itemId}", itemId)
+                        .header(Header.USER_ID_HEADER, userId)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound());
     }
 
     @Test
@@ -93,6 +161,18 @@ public class ItemControllerTest {
                 .andExpect(jsonPath("$[0].name").value("text"))
                 .andExpect(jsonPath("$[0].description").value("text"))
                 .andExpect(jsonPath("$[0].available").value(true));
+    }
+
+    @Test
+    @DisplayName("Should throw exception when text size > 200")
+    public void searchWhenTextSizeGreaterThan200ThenException() throws Exception {
+        mockMvc.perform(get("/items/search")
+                        .header(Header.USER_ID_HEADER, 1)
+                        .param("text", "text".repeat(201))
+                        .param("from", "0")
+                        .param("size", "10")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest());
     }
 
     @Test
