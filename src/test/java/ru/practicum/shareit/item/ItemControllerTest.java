@@ -9,6 +9,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import ru.practicum.shareit.item.exception.CommentingRestrictedException;
 import ru.practicum.shareit.item.exception.ItemNotFoundException;
 import ru.practicum.shareit.item.model.dto.CommentRequestDto;
 import ru.practicum.shareit.item.model.dto.CommentResponseDto;
@@ -243,4 +244,22 @@ public class ItemControllerTest {
                 .andExpect(jsonPath("$.text").value(text))
                 .andExpect(jsonPath("$.authorName").value(authorName));
     }
+
+    @Test
+    @DisplayName("Should throw exception when commenting restricted")
+    public void addCommentIdWhenCommentingRestrictedThenException() throws Exception {
+        long userId = 1L;
+        long itemId = 2L;
+        CommentRequestDto commentRequestDto = new CommentRequestDto("text");
+        when(itemService.addComment(commentRequestDto, itemId, userId)).thenThrow(
+                new CommentingRestrictedException("Commenting restricted")
+        );
+
+        mockMvc.perform(post("/items/{itemId}/comment", itemId)
+                        .header(Header.USER_ID_HEADER, userId)
+                        .content(new ObjectMapper().writeValueAsString(commentRequestDto))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest());
+    }
+
 }
