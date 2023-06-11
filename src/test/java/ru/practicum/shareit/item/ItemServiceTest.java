@@ -456,7 +456,7 @@ class ItemServiceTest {
 
     @Test
     @DisplayName("Should throw CommentingRestrictedException when the user hasn't booked the item")
-    void addCommentWhenUserHasNotBookedItemThenThrowCommentingRestrictedException() {// create test data
+    void addCommentWhenUserHasNotBookedItemThenThrowCommentingRestrictedException() {
         long itemId = 1L;
         long authorId = 2L;
         CommentRequestDto commentRequestDto = new CommentRequestDto("Test comment");

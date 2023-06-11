@@ -81,16 +81,16 @@ public class BookingRepositoryTest {
     @Test
     @DisplayName("Should find all current bookings by item owner id")
     public void findAllCurrentByItem_Owner_IdOrderByStartDesc() {
-        Page<Booking> bookings = bookingRepo.
-                findAllCurrentByItem_Owner_IdOrderByStartDesc(owner.getId(), PageRequest.of(0, 1));
+        Page<Booking> bookings = bookingRepo
+                .findAllCurrentByItem_Owner_IdOrderByStartDesc(owner.getId(), PageRequest.of(0, 1));
         assertEquals(currentBooking, bookings.getContent().get(0));
     }
 
     @Test
     @DisplayName("Should find all past bookings by item owner id")
     public void findAllPastByItem_Owner_IdOrderByStartDesc() {
-        Page<Booking> bookings = bookingRepo.
-                findAllPastByItem_Owner_IdOrderByStartDesc(owner.getId(), PageRequest.of(0, 1));
+        Page<Booking> bookings = bookingRepo
+                .findAllPastByItem_Owner_IdOrderByStartDesc(owner.getId(), PageRequest.of(0, 1));
         assertEquals(pastBooking, bookings.getContent().get(0));
     }
 
