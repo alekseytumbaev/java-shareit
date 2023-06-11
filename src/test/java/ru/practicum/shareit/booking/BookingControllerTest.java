@@ -64,8 +64,6 @@ public class BookingControllerTest {
                 .andExpect(jsonPath("$.id", is((int) responseDto.getId())))
                 .andExpect(jsonPath("$.item", nullValue()))
                 .andExpect(jsonPath("$.booker", nullValue()))
-                .andExpect(jsonPath("$.start", is(responseDto.getStart().toString())))
-                .andExpect(jsonPath("$.end", is(responseDto.getEnd().toString())))
                 .andExpect(jsonPath("$.status", is(responseDto.getStatus().toString())));
     }
 

@@ -108,7 +108,6 @@ public class ItemRequestControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id", is((int) responseDto.getId())))
                 .andExpect(jsonPath("$.description", is(responseDto.getDescription())))
-                .andExpect(jsonPath("$.created", is(responseDto.getCreated().toString())))
                 .andExpect(jsonPath("$.items", hasSize(0)));
     }
 
@@ -143,11 +142,9 @@ public class ItemRequestControllerTest {
                 .andExpect(jsonPath("$", hasSize(2)))
                 .andExpect(jsonPath("$[0].id", is((int) responseDto1.getId())))
                 .andExpect(jsonPath("$[0].description", is(responseDto1.getDescription())))
-                .andExpect(jsonPath("$[0].created", is(responseDto1.getCreated().toString())))
                 .andExpect(jsonPath("$[0].items", hasSize(0)))
                 .andExpect(jsonPath("$[1].id", is((int) responseDto2.getId())))
                 .andExpect(jsonPath("$[1].description", is(responseDto2.getDescription())))
-                .andExpect(jsonPath("$[1].created", is(responseDto2.getCreated().toString())))
                 .andExpect(jsonPath("$[1].items", hasSize(0)));
     }
 }

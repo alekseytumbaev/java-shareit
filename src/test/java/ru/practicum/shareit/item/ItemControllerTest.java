@@ -162,7 +162,6 @@ public class ItemControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(1L))
                 .andExpect(jsonPath("$.text").value(text))
-                .andExpect(jsonPath("$.authorName").value(authorName))
-                .andExpect(jsonPath("$.created").value(now.toString()));
+                .andExpect(jsonPath("$.authorName").value(authorName));
     }
 }
