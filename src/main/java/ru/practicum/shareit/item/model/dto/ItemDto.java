@@ -1,12 +1,15 @@
 package ru.practicum.shareit.item.model.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import javax.validation.constraints.Size;
 
 @Data
 @AllArgsConstructor
+@NoArgsConstructor
 public class ItemDto {
     private long id;
 
@@ -16,11 +19,9 @@ public class ItemDto {
     private String description;
 
     private Boolean available;
+
+    @JsonIgnore
     private long ownerId;
 
-    /**
-    If item was created on the request of another user,
-    then in this field will store a link to the corresponding request
-     */
-    private String request;
+    private long requestId;
 }

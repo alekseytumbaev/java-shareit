@@ -48,15 +48,19 @@ public class ItemController {
     }
 
     @GetMapping("/search")
-    public Collection<ItemDto> searchByNameOrDescription(@RequestParam @NotNull @Size(max = 200) String text) {
-        Collection<ItemDto> items = itemService.searchByNameOrDescription(text);
+    public Collection<ItemDto> searchByNameOrDescription(@RequestParam @NotNull @Size(max = 200) String text,
+                                                         @RequestParam(defaultValue = "0") int from,
+                                                         @RequestParam(defaultValue = "10") int size) {
+        Collection<ItemDto> items = itemService.searchByNameOrDescription(text, from, size);
         log.info("Items with '{}' in name or description retrieved", text);
         return items;
     }
 
     @GetMapping
-    public Collection<ItemWithBookingsResponseDto> getByOwnerId(@RequestHeader(Header.USER_ID_HEADER) long ownerId) {
-        Collection<ItemWithBookingsResponseDto> itemsDto = itemService.getAllByOwnerId(ownerId);
+    public Collection<ItemWithBookingsResponseDto> getAllByOwnerId(@RequestHeader(Header.USER_ID_HEADER) long ownerId,
+                                                                    @RequestParam(defaultValue = "0") int from,
+                                                                    @RequestParam(defaultValue = "10") int size) {
+        Collection<ItemWithBookingsResponseDto> itemsDto = itemService.getAllByOwnerId(ownerId, from, size);
         log.info("Items of owner with id={} retrieved", ownerId);
         return itemsDto;
     }

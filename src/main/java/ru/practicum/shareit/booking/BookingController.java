@@ -10,6 +10,8 @@ import ru.practicum.shareit.util.constant.Header;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Positive;
+import javax.validation.constraints.PositiveOrZero;
 import java.util.Collection;
 
 @Slf4j
@@ -41,11 +43,15 @@ public class BookingController {
     }
 
     @GetMapping
-    public Collection<BookingResponseDto> getAllSortedByStartTimeDesc(@RequestHeader(Header.USER_ID_HEADER) long bookerId,
-                                                                      @RequestParam(defaultValue = "ALL") String state) {
+    public Collection<BookingResponseDto> getAllSortedByStartTimeDesc(
+            @RequestHeader(Header.USER_ID_HEADER) long bookerId,
+            @RequestParam(defaultValue = "ALL") String state,
+            @RequestParam(defaultValue = "0") @PositiveOrZero int from,
+            @RequestParam(defaultValue = "10") @Positive int size) {
         BookingState bookingState = convertToBookingState(state);
 
-        Collection<BookingResponseDto> bookings = bookingService.getAllByBookerIdSortedByStartTimeDesc(bookerId, bookingState);
+        Collection<BookingResponseDto> bookings = bookingService
+                .getAllByBookerIdSortedByStartTimeDesc(bookerId, bookingState, from, size);
         log.info("Bookings with state={} were retrieved by booker with id={}", state, bookerId);
         return bookings;
     }
@@ -53,10 +59,13 @@ public class BookingController {
     @GetMapping("/owner")
     public Collection<BookingResponseDto> getAllForUserItemsSortedByStartTimeDesc(
             @RequestHeader(Header.USER_ID_HEADER) long itemOwnerId,
-            @RequestParam(defaultValue = "ALL") String state) {
+            @RequestParam(defaultValue = "ALL") String state,
+            @RequestParam(defaultValue = "0") @PositiveOrZero int from,
+            @RequestParam(defaultValue = "10") @Positive int size) {
         BookingState bookingState = convertToBookingState(state);
 
-        Collection<BookingResponseDto> bookings = bookingService.getAllByItemOwnerIdSortedByStartTimeDesc(itemOwnerId, bookingState);
+        Collection<BookingResponseDto> bookings = bookingService
+                .getAllByItemOwnerIdSortedByStartTimeDesc(itemOwnerId, bookingState, from, size);
         log.info("Bookings with state={} were retrieved by items owner with id={}", state, itemOwnerId);
         return bookings;
     }
