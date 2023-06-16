@@ -11,6 +11,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import ru.practicum.shareit.server.error.global_exception.UserNotFoundException;
 import ru.practicum.shareit.server.user.model.UserDto;
 import ru.practicum.shareit.server.util.constant.Header;
 
@@ -88,6 +89,17 @@ public class UserControllerTest {
                 .andExpect(jsonPath("$.id").value(userId))
                 .andExpect(jsonPath("$.name").value("John Doe"))
                 .andExpect(jsonPath("$.email").value("john.doe@example.com"));
+    }
+
+    @Test
+    @DisplayName("Should throw exception when get user by id not found")
+    public void getByIdNotFound() throws Exception {
+        long userId = 1L;
+        when(userService.getDtoById(userId)).thenThrow(new UserNotFoundException("User not found"));
+
+        mockMvc.perform(get("/users/{userId}", userId)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound());
     }
 
     @Test
