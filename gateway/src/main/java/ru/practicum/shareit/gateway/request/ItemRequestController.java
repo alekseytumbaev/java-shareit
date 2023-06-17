@@ -26,20 +26,26 @@ public class ItemRequestController {
     public ResponseEntity<Object> add(@RequestHeader(Header.USER_ID_HEADER) long authorId,
                                       @RequestBody @Valid ItemRequestRequestDto itemRequestDto) {
         log.info("User with id={} is adding item request with a description='{}'", authorId, itemRequestDto.getDescription());
-        return itemRequestClient.add(authorId, itemRequestDto);
+        ResponseEntity<Object> response = itemRequestClient.add(authorId, itemRequestDto);
+        log.info("Response: {}", response);
+        return response;
     }
 
     @GetMapping
     public ResponseEntity<Object> getAllByAuthorIdSortedByCreatedDesc(@RequestHeader(Header.USER_ID_HEADER) long authorId) {
         log.info("User with id={} is retrieving all his item requests", authorId);
-        return itemRequestClient.getAllByAuthorIdSortedByCreatedDesc(authorId);
+        ResponseEntity<Object> response = itemRequestClient.getAllByAuthorIdSortedByCreatedDesc(authorId);
+        log.info("Response: status = {}, headers = {}", response.getStatusCode(), response.getHeaders());
+        return response;
     }
 
     @GetMapping("/{requestId}")
     public ResponseEntity<Object> getById(@RequestHeader(Header.USER_ID_HEADER) long userId,
                                           @PathVariable long requestId) {
         log.info("User with id={} is retrieving item request with id={}", requestId, userId);
-        return itemRequestClient.getById(userId, requestId);
+        ResponseEntity<Object> response = itemRequestClient.getById(userId, requestId);
+        log.info("Response: {}", response);
+        return response;
     }
 
     @GetMapping("/all")
@@ -47,6 +53,8 @@ public class ItemRequestController {
                                                      @RequestParam(defaultValue = "0") @PositiveOrZero int from,
                                                      @RequestParam(defaultValue = "10") @Positive int size) {
         log.info("User with id={} is retrieving {} item requests except his starting from index {}", authorId, size, from);
-        return itemRequestClient.getAllExceptAuthorIdSortedByCreatedDesc(authorId, from, size);
+        ResponseEntity<Object> response = itemRequestClient.getAllExceptAuthorIdSortedByCreatedDesc(authorId, from, size);
+        log.info("Response: status = {}, headers = {}", response.getStatusCode(), response.getHeaders());
+        return response;
     }
 }

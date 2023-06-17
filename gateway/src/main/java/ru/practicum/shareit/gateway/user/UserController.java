@@ -25,31 +25,41 @@ public class UserController {
     @PostMapping
     public ResponseEntity<Object> add(@RequestBody @Validated({Creation.class, Default.class}) UserDto userDto) {
         log.info("Adding user with email={}", userDto.getEmail());
-        return userClient.add(userDto);
+        ResponseEntity<Object> response = userClient.add(userDto);
+        log.info("Response: {}", response);
+        return response;
     }
 
     @GetMapping
     public ResponseEntity<Object> getAll() {
         log.info("Retrieving all users");
-        return userClient.getAll();
+        ResponseEntity<Object> response = userClient.getAll();
+        log.info("Response: status = {}, headers = {}", response.getStatusCode(), response.getHeaders());
+        return response;
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<Object> getById(@PathVariable long id) {
         log.info("Retrieving user with id={}", id);
-        return userClient.getById(id);
+        ResponseEntity<Object> response = userClient.getById(id);
+        log.info("Response: {}", response);
+        return response;
     }
 
     @PatchMapping("/{id}")
     public ResponseEntity<Object> update(@RequestBody @Valid UserDto userDto, @PathVariable long id) {
         userDto.setId(id);
         log.info("Updating user with id={}", userDto.getId());
-        return userClient.update(userDto);
+        ResponseEntity<Object> response = userClient.update(userDto);
+        log.info("Response: {}", response);
+        return response;
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Object> delete(@PathVariable long id) {
         log.info("Deleting user with id={}", id);
-        return userClient.delete(id);
+        ResponseEntity<Object> response = userClient.delete(id);
+        log.info("Response: {}", response);
+        return response;
     }
 }

@@ -1,19 +1,26 @@
 version: '3.8'
 services:
+  haproxy:
+    build:
+      context: ./haproxy
+      dockerfile: Dockerfile
+    container_name: shareit-haproxy
+    ports:
+      - "8080:8080"
+    depends_on:
+      - gateway
+
   gateway:
     build:
       context: ./gateway
       dockerfile: Dockerfile
-    container_name:
-      shareit-gateway
-    ports:
-      - "8080:8080"
-      - "5006:5006" #debugging port
+    deploy:
+      replicas: 2 #2 instances of gateway will be created
     depends_on:
       - server
     environment:
       - SHAREIT_SERVER_URL=http://server:9090
-      - JAVA_TOOL_OPTIONS=-agentlib:jdwp=transport=dt_socket,address=*:5006,server=y,suspend=n
+      - TZ=${TZ}
 
   server:
     build:
@@ -31,17 +38,20 @@ services:
       - POSTGRES_USER=shareit
       - POSTGRES_PASSWORD=shareit
       - JAVA_TOOL_OPTIONS=-agentlib:jdwp=transport=dt_socket,address=*:5005,server=y,suspend=n
+      - TZ=${TZ}
 
   db:
     image: postgres:13.7-alpine
     container_name: shareit-db
     ports:
-      - "6541:5432"
+      - "5432:5432"
     environment:
       - POSTGRES_DB=shareit
       - POSTGRES_USER=shareit
       - POSTGRES_PASSWORD=shareit
+      - TZ=${TZ}
     volumes:
       - shareit-db-data:/var/lib/postgresql/data
 volumes:
   shareit-db-data:
+

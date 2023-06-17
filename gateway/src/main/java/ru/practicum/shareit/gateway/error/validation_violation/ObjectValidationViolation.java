@@ -6,5 +6,5 @@ import lombok.Data;
 @Data
 @AllArgsConstructor
 public class ObjectValidationViolation {
-    private final String name;
+    private final String message;
 }

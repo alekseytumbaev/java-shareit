@@ -29,7 +29,9 @@ public class BookingController {
     public ResponseEntity<Object> add(@RequestBody @NotNull @Valid BookingRequestDto bookingRequestDto,
                                       @RequestHeader(Header.USER_ID_HEADER) long bookerId) {
         log.info("User with id={} is adding booking for item with id={}", bookerId, bookingRequestDto.getItemId());
-        return bookingClient.add(bookerId, bookingRequestDto);
+        ResponseEntity<Object> response = bookingClient.add(bookerId, bookingRequestDto);
+        log.info("Response: {}", response);
+        return response;
     }
 
     @PatchMapping("/{bookingId}")
@@ -37,7 +39,9 @@ public class BookingController {
                                                @RequestParam boolean approved,
                                                @RequestHeader(Header.USER_ID_HEADER) long userId) {
         log.info("User with id={} is changing booking status to '{}' for booking with id={}", userId, approved, bookingId);
-        return bookingClient.changeStatus(bookingId, approved, userId);
+        ResponseEntity<Object> response = bookingClient.changeStatus(bookingId, approved, userId);
+        log.info("Response: {}", response);
+        return response;
     }
 
     @GetMapping
@@ -50,7 +54,9 @@ public class BookingController {
 
         log.info("Booker with id={} is retrieving {} bookings with state '{}' starting from index {}",
                 bookerId, size, state, from);
-        return bookingClient.getAllByBookerIdSortedByStartTimeDesc(bookerId, bookingState, from, size);
+        ResponseEntity<Object> response = bookingClient.getAllByBookerIdSortedByStartTimeDesc(bookerId, bookingState, from, size);
+        log.info("Response: status = {}, headers = {}", response.getStatusCode(), response.getHeaders());
+        return response;
     }
 
     @GetMapping("/owner")
@@ -63,14 +69,18 @@ public class BookingController {
 
         log.info("Item's owner id={} is retrieving {} bookings with state '{}' starting from index {}",
                 itemOwnerId, size, state, from);
-       return bookingClient.getAllByItemOwnerIdSortedByStartTimeDesc(itemOwnerId, bookingState, from, size);
+        ResponseEntity<Object> response = bookingClient.getAllByItemOwnerIdSortedByStartTimeDesc(itemOwnerId, bookingState, from, size);
+        log.info("Response: status = {}, headers = {}", response.getStatusCode(), response.getHeaders());
+        return response;
     }
 
     @GetMapping("/{bookingId}")
     public ResponseEntity<Object> getById(@PathVariable long bookingId,
-                                      @RequestHeader(Header.USER_ID_HEADER) long userId) {
+                                          @RequestHeader(Header.USER_ID_HEADER) long userId) {
         log.info("User with id={} is retrieving booking with id={}", userId, bookingId);
-        return bookingClient.getById(bookingId, userId);
+        ResponseEntity<Object> response = bookingClient.getById(bookingId, userId);
+        log.info("Response: {}", response);
+        return response;
     }
 
     private BookingState convertToBookingState(String state) throws UnknownBookingStateException {

@@ -51,7 +51,7 @@ public class ItemService {
      * User can write a comment for the item only if he booked it and the booking had ended before the comment was written
      */
     public CommentResponseDto addComment(CommentRequestDto commentRequestDto, long itemId, long authorId)
-            throws UserNotFoundException, ItemNotFoundException {
+            throws UserNotFoundException, ItemNotFoundException, CommentingRestrictedException {
         User author = userService.getById(authorId);
         Item item = getById(itemId);
 
@@ -77,7 +77,7 @@ public class ItemService {
         return CommentMapper.toCommentResponseDto(comment);
     }
 
-    public ItemDto add(ItemDto itemDto) throws UserNotFoundException {
+    public ItemDto add(ItemDto itemDto) throws UserNotFoundException, ItemRequestNotFoundException {
         itemDto.setId(0);
         User owner = userService.getById(itemDto.getOwnerId());
         if (itemDto.getRequestId() == 0) {
