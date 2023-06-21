@@ -677,3 +677,6 @@ X-Sharer-User-Id: 3
   }
 ]
 ```
+- **400:** Validation failed
+- **404:** User not found
+- **500:** Internal server error
